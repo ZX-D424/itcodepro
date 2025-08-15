@@ -281,6 +281,13 @@ import { listTag } from '@/api/tag/tag';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus, Delete, Refresh, Document, Check, Loading } from '@element-plus/icons-vue';
 import html2pdf from 'html2pdf.js';
+import { useRouter } from 'vue-router';
+// ✅ 替换为 Pinia 的 store 引入方式
+import { useUserStore } from '@/store/user'; // 引入 user store
+
+const router = useRouter();
+const store = useUserStore(); // 获取 user store 实例
+
 
 // 题型定义
 const questionTypes = [
@@ -454,6 +461,12 @@ const validateQuantity = () => {
 
 // 获取题目数据
 const fetchQuestions = async () => {
+  // 验证登录状态
+  if (!store.isLoggedIn) {
+    ElMessage.warning('请先登录');
+    router.push('/login');
+    return;
+  }
   if (categoryRows.value.length === 0) {
     ElMessage.warning('请添加至少一个筛选条件');
     return;
