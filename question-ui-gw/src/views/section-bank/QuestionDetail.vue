@@ -44,133 +44,93 @@
           <div class="question-content" v-html="question?.content"></div>
         </div>
         
-        <!-- 题型专属区域 -->
-        <div class="answer-section">
-          <!-- 单选题 & 判断题 -->
-          <div v-if="[1, 3].includes(question?.questionType)" class="question-options">
+        <!-- 题型专属区域（仅展示，不包含答题功能） -->
+        <div class="answer-section" v-if="[1, 2, 3].includes(question?.questionType)">
+          <!-- 单选题 & 判断题 & 多选题 - 仅展示选项 -->
+          <div v-if="[1, 2, 3].includes(question?.questionType)" class="question-options">
             <h3 class="section-title">选项：</h3>
-            <el-radio-group v-model="selectedOption" class="options-group">
+            <div class="options-group">
               <div 
                 v-for="option in question?.options" 
                 :key="option?.id" 
                 class="option-item"
               >
-                <el-radio :label="option?.id">
-                  <span class="option-code">{{ option?.optionCode }}.</span>
-                  <span class="option-text" v-html="option?.optionContent"></span>
-                </el-radio>
+                <span class="option-code">{{ option?.optionCode }}.</span>
+                <span class="option-text" v-html="option?.optionContent"></span>
               </div>
-            </el-radio-group>
+            </div>
           </div>
           
-          <!-- 多选题 -->
-          <div v-else-if="question?.questionType === 2" class="question-multi">
-            <h3 class="section-title">多选题选项：</h3>
-            <el-checkbox-group v-model="selectedMultiOptions" class="options-group">
-              <div 
-                v-for="option in question?.options" 
-                :key="option?.id" 
-                class="option-item"
-              >
-                <el-checkbox :label="option?.id">
-                  <span class="option-code">{{ option?.optionCode }}.</span>
-                  <span class="option-text" v-html="option?.optionContent"></span>
-                </el-checkbox>
-              </div>
-            </el-checkbox-group>
-          </div>
-          
-          <!-- 填空题（使用简答题输入框替代） -->
+          <!-- 填空题 - 仅展示题目 -->
           <div v-else-if="question?.questionType === 4" class="question-blank">
             <h3 class="section-title">填空题：</h3>
             <div class="blank-content" v-html="formattedBlankContent"></div>
-            
-            <!-- 复用简答题的输入框 -->
-            <el-input
-              type="textarea"
-              v-model="blankAnswerText"
-              :rows="6"
-              placeholder="请输入各空答案，用逗号分隔（如：答案1,答案2,答案3）"
-              class="essay-textarea"
-            ></el-input>
           </div>
           
-          <!-- 简答题 -->
+          <!-- 简答题 - 仅展示标题 -->
           <div v-else-if="question?.questionType === 5" class="question-essay">
             <h3 class="section-title">简答题：</h3>
-            <el-input
-              type="textarea"
-              v-model="essayAnswer"
-              :rows="8"
-              placeholder="请输入答案"
-              class="essay-textarea"
-            ></el-input>
           </div>
           
-          <!-- 编程题 -->
+          <!-- 编程题 - 仅展示标题 -->
           <div v-else-if="question?.questionType === 6" class="question-code">
             <h3 class="section-title">编程题：</h3>
-            <div class="code-editor">
-              <el-input
-                type="textarea"
-                v-model="codeAnswer"
-                :rows="10"
-                placeholder="请输入代码"
-                monaco-editor
-                language="java"
-                :options="{
-                  theme: 'vs-dark',
-                  automaticLayout: true,
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false
-                }"
-                class="monaco-editor"
-              ></el-input>
-            </div>
           </div>
         </div>
         
-        <!-- 参考答案 -->
-        <el-collapse v-model="activeCollapse" class="answer-collapse">
-          <el-collapse-item name="answer" v-if="question?.answer">
-            <template #title>
-              <h3 class="answer-title">
-                <el-icon name="document" />
-                <span>参考答案</span>
-              </h3>
-            </template>
-            <div class="answer-content" v-html="question?.answer?.answerContent"></div>
-            
-            <div v-if="[1, 2, 3].includes(question?.questionType)">
-              <h4>正确选项：</h4>
-              <div class="correct-options">
-                <el-tag 
-                  v-for="option in question?.options" 
-                  :key="option?.id" 
-                  v-if="option?.isCorrect"
-                  type="success"
-                  class="correct-option"
-                >
-                  <span class="option-code">{{ option?.optionCode }}.</span>
-                  <span v-html="option?.optionContent"></span>
-                </el-tag>
-              </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-        
-        <!-- 操作按钮 -->
-        <div class="action-buttons">
-          <el-button-group>
+        <!-- 参考答案和解析（优化展示） -->
+        <div class="answer-analysis-section">
+          <!-- 答案切换按钮 -->
+          <div class="answer-toggle" @click="toggleAnswer">
             <el-button 
               type="primary" 
-              @click="handleSubmit"
-              :loading="submitting"
+              size="default"
+              :icon="showAnswer ? 'EyeOff' : 'Eye'"
+              class="toggle-btn"
             >
-              <el-icon name="document-checked" />
-              <span>提交答案</span>
+              {{ showAnswer ? '隐藏答案' : '查看答案' }}
             </el-button>
-          </el-button-group>
+          </div>
+          
+          <!-- 答案内容（带动画效果） -->
+          <transition name="fade-slide">
+            <div v-if="showAnswer && question?.answer" class="answer-content-wrapper">
+              <!-- 参考答案 -->
+              <div class="answer-block">
+                <h3 class="answer-title">
+                  <el-icon name="document" />
+                  <span>参考答案</span>
+                </h3>
+                <div class="answer-content" v-html="question?.answer?.answerContent"></div>
+                
+                <!-- 正确选项 -->
+                <div v-if="[1, 2, 3].includes(question?.questionType)" class="correct-options-container">
+                  <h4>正确选项：</h4>
+                  <div class="correct-options">
+                    <el-tag 
+                      v-for="option in question?.options" 
+                      :key="option?.id" 
+                      v-if="option?.isCorrect"
+                      type="success"
+                      class="correct-option"
+                    >
+                      <span class="option-code">{{ option?.optionCode }}.</span>
+                      <span v-html="option?.optionContent"></span>
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 解析部分（如果有） -->
+              <div v-if="question?.answer?.analysis" class="analysis-block">
+                <h3 class="analysis-title">
+                  <el-icon name="HelpFilled" />
+                  <span>题目解析</span>
+                </h3>
+                <div class="analysis-content" v-html="question?.answer?.analysis"></div>
+              </div>
+            </div>
+          </transition>
         </div>
       </div>
       
@@ -188,8 +148,13 @@ import { getManage } from '@/api/manage/manage';
 import { getOptionByQuestionId } from '@/api/option/option';
 import { getAnswerByQuestionId } from '@/api/option/option';
 import { useDict } from '@/utils/dict';
-import { ElMessage, ElMessageBox } from 'element-plus';
-
+import { ElMessage } from 'element-plus';
+// 修改图标导入方式
+// import Eye from '@element-plus/icons-vue/dist/es/icons/eye.vue';
+// import EyeOff from '@element-plus/icons-vue/dist/es/icons/eye-off.vue';
+// import Document from '@element-plus/icons-vue/dist/es/icons/document.vue';
+// import HelpFilled from '@element-plus/icons-vue/dist/es/icons/help-filled.vue';
+// import ArrowLeft from '@element-plus/icons-vue/dist/es/icons/arrow-left.vue';
 // 路由
 const route = useRoute();
 const router = useRouter();
@@ -200,16 +165,7 @@ const { sys_question_questiontype, sys_status_question } = useDict('sys_question
 // 数据
 const question = ref(null);
 const loading = ref(false);
-const submitting = ref(false);
-const activeCollapse = ref([]);
-
-// 不同题型的答案
-const selectedOption = ref('');
-const selectedMultiOptions = ref([]);
-const essayAnswer = ref('');
-const codeAnswer = ref('');
-// 填空题使用的临时输入变量（核心修改）
-const blankAnswerText = ref('');
+const showAnswer = ref(false); // 控制答案显示/隐藏
 
 // 硬编码备选映射
 const fallbackMap = {
@@ -251,7 +207,7 @@ const getQuestionDetail = async () => {
        .sort((a, b) => Number(a.sort) - Number(b.sort)); 
     }
     
-    // 获取答案
+    // 获取答案和解析
     const answerRes = await getAnswerByQuestionId(id);
     question.value.answer = answerRes.rows?.[0] || null;
     
@@ -273,54 +229,14 @@ const formattedBlankContent = computed(() => {
   }).join(' ');
 });
 
+// 切换答案显示/隐藏
+const toggleAnswer = () => {
+  showAnswer.value = !showAnswer.value;
+};
+
 // 返回
 const handleBack = () => {
   router.back();
-};
-
-// 提交答案
-const handleSubmit = () => {
-  if (!question.value) return;
-  
-  ElMessageBox.confirm(
-    '确定提交答案吗？',
-    '提示',
-    { type: 'info' }
-  ).then(() => {
-    submitting.value = true;
-    
-    // 构建答案数据
-    let answerData = {};
-    switch (question.value.questionType) {
-      case 1: // 单选题
-      case 3: // 判断题
-        answerData = { optionId: selectedOption.value };
-        break;
-      case 2: // 多选题
-        answerData = { optionIds: selectedMultiOptions.value };
-        break;
-      case 4: // 填空题（处理逗号分隔的答案）
-        answerData = {
-          answers: blankAnswerText.value.split(',').map(item => item.trim())
-        };
-        break;
-      case 5: // 简答题
-        answerData = { content: essayAnswer.value };
-        break;
-      case 6: // 编程题
-        answerData = { code: codeAnswer.value };
-        break;
-    }
-    
-    // 模拟提交
-    setTimeout(() => {
-      console.log('提交答案:', answerData);
-      submitting.value = false;
-      ElMessage.success('答案提交成功');
-    }, 1000);
-  }).catch(() => {
-    ElMessage.info('取消提交');
-  });
 };
 
 // 题型调试信息
@@ -416,7 +332,6 @@ onMounted(() => {
 .option-item:hover {
   background-color: #f0f9ff;
   border-color: #409eff;
-  cursor: pointer;
 }
 
 .option-code {
@@ -435,23 +350,6 @@ onMounted(() => {
   font-size: large;
 }
 
-/* 选中状态样式 */
-:deep(.el-radio.is-checked .option-item, .el-checkbox.is-checked .option-item) {
-  background-color: #e0f2ff;
-  border-color: #409eff;
-}
-
-:deep(.el-radio__label),
-:deep(.el-checkbox__label) {
-  display: flex; 
-  align-items: center;
-  height: 40px; 
-  padding: 0 12px; 
-  border-radius: 8px;
-  cursor: pointer; 
-  transition: all 0.3s;
-}
-
 /* 填空占位符样式 */
 .blank-placeholder {
   display: inline-block;
@@ -462,35 +360,76 @@ onMounted(() => {
   line-height: 30px;
   color: #666;
   border-bottom: 2px solid #ccc;
-  cursor: text;
 }
 
-/* 简答题/填空题输入框样式 */
-.essay-textarea {
-  width: 100%;
-  margin-top: 10px;
+/* 答案和解析区域（优化样式） */
+.answer-analysis-section {
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
-/* 参考答案区域 */
-.answer-collapse {
-  margin-top: 20px;
+.answer-toggle {
+  margin-bottom: 15px;
+}
+
+.toggle-btn {
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+}
+
+.answer-content-wrapper {
   background-color: #f0f9ff;
   border: 1px solid #d0eaff;
   border-radius: 8px;
+  overflow: hidden;
 }
 
-.answer-title {
+.answer-block, .analysis-block {
+  padding: 20px;
+}
+
+.analysis-block {
+  background-color: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+}
+
+.answer-title, .analysis-title {
   display: flex;
   align-items: center;
   font-size: 16px;
+  margin-bottom: 15px;
+  color: #1f2937;
+  font-weight: 600;
 }
 
-.answer-content {
-  padding: 15px;
-  background-color: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  margin-top: 10px;
+.answer-title .el-icon, .analysis-title .el-icon {
+  margin-right: 8px;
+  color: #409eff;
+}
+
+.answer-content, .analysis-content {
+  line-height: 1.8;
+  color: #374151;
+  padding: 10px 0;
+  font-size: 15px;
+}
+
+.analysis-content p {
+  margin-bottom: 10px;
+}
+
+.analysis-content p:last-child {
+  margin-bottom: 0;
+}
+
+.correct-options-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #e5e7eb;
 }
 
 .correct-options {
@@ -503,14 +442,24 @@ onMounted(() => {
 .correct-option {
   padding: 8px 12px;
   border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
-/* 操作按钮区域 */
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 30px;
-  margin-bottom: 15px;
+.correct-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+}
+
+/* 动画效果 */
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
 }
 
 /* 加载和错误状态 */
@@ -527,25 +476,5 @@ onMounted(() => {
   align-items: center;
   height: 300px;
   color: #ef4444;
-}
-
-/* 编程题编辑器样式 */
-.code-editor {
-  margin-top: 10px;
-}
-
-.monaco-editor {
-  font-family: 'Courier New', monospace;
-  background-color: #1e1e1e !important;
-  color: #d4d4d4 !important;
-}
-
-.monaco-editor .el-textarea__inner {
-  background-color: #1e1e1e !important;
-  color: #d4d4d4 !important;
-  border: 1px solid #333 !important;
-  font-size: 14px !important;
-  line-height: 1.5 !important;
-  padding: 10px !important;
 }
 </style>

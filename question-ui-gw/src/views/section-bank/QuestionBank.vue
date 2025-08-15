@@ -1661,7 +1661,7 @@ onMounted(() => {
     <div class="category-sidebar">
       <div class="sidebar-header">
         <h2>题库类目</h2>
-        <el-pagination
+        <!-- <el-pagination
           small
           :total="categoryTotal"
           :page-size="categoryPageSize"
@@ -1669,7 +1669,7 @@ onMounted(() => {
           @current-change="handleCategoryPageChange"
           layout="prev, pager, next"
           class="category-pagination"
-        />
+        /> -->
       </div>
       
       <el-tree
@@ -1701,13 +1701,7 @@ onMounted(() => {
       <div v-else-if="selectedCategoryId">
         <div class="content-header">
           <h2>{{ selectedCategoryName }} (共 {{ questionTotal }} 题)</h2>
-          <el-pagination
-            :total="questionTotal"
-            :page-size="questionPageSize"
-            :current-page="questionPageNum"
-            @current-change="handleQuestionPageChange"
-            layout="prev, pager, next, jumper"
-          />
+        
         </div>
         
         <div class="question-list">
@@ -1732,11 +1726,26 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+
+
+      
       
       <div v-else class="empty-state">
         <p>请选择左侧的类目查看题目</p>
       </div>
     </div>
+    <!-- 分页控件：右下角 -->
+  <div class="pagination-bottom">
+    <el-pagination
+      :total="questionTotal"
+      :page-size="questionPageSize"
+      :current-page="questionPageNum"
+      @current-change="handleQuestionPageChange"
+      layout="prev, pager, next, jumper"
+      background
+    />
+  </div>
   </div>
 </template>
 
@@ -1773,6 +1782,27 @@ const questionTotal = ref(0);
 const questionPageNum = ref(1);
 const questionPageSize = ref(10);
 const loading = ref(false);
+
+
+// 默认页面
+
+const getFirstSubCategory = (treeData) => {
+  if (!treeData || treeData.length === 0) return null;
+  
+  // 获取第一个父类目（顶级类目）
+  const firstParent = treeData[0];
+  
+  // 检查是否有子类目
+  if (firstParent && firstParent.children && firstParent.children.length > 0) {
+    // 返回第一个子类目
+    return firstParent.children[0];
+  }
+  
+  return null;
+};
+
+
+
 
 // 将平铺数据转换为树形结构
 const buildTree = (data) => {
@@ -1813,6 +1843,13 @@ const getCategoryList = async () => {
   } catch (error) {
     console.error('获取类目列表失败:', error);
   }
+  const firstSubCategory = getFirstSubCategory(treeCategoryList.value);
+if (firstSubCategory) {
+  selectedCategoryId.value = firstSubCategory.id;
+  selectedCategoryName.value = firstSubCategory.name;
+  // 加载对应题目标题
+  getQuestionList();
+}
 };
 
 // 获取题目列表
@@ -1888,9 +1925,9 @@ onMounted(() => {
 }
 
 .category-sidebar {
-  width: 320px;
+  width: 200px;
   border-right: 1px solid #e5e7eb;
-  padding: 25px 20px;
+  padding: 25px 10px;
   background-color: #ffffff;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
@@ -1945,6 +1982,7 @@ onMounted(() => {
   flex: 1;
   padding: 30px 40px;
   overflow-y: auto;
+  position: relative; /* 添加此行 */
 }
 
 .content-header {
@@ -2010,5 +2048,19 @@ onMounted(() => {
   height: 300px;
   color: #6b7280;
   font-size: 16px;
+}
+
+
+.pagination-bottom {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+  z-index: 10;
+}
+
+/* 可选：调整分页按钮大小 */
+.pagination-bottom .el-pagination {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

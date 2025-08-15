@@ -6,56 +6,66 @@
     </div>
 
     <!-- 类目搜索区域 -->
-    <div class="category-search-area">
-      <div class="search-header">
-        <h3>题目筛选条件</h3>
-        <div class="action-buttons">
-          <el-button type="primary" size="small" @click="addCategoryRow">
+    <div class="category-search-area rounded-xl bg-white shadow-sm p-4">
+      <div class="search-header mb-4">
+        <h3 class="text-lg font-semibold">题目筛选条件</h3>
+        <div class="action-buttons flex gap-2">
+          <el-button type="primary" size="small" @click="addCategoryRow" class="btn-add">
             <el-icon><Plus /></el-icon> 增加类目
           </el-button>
           <el-button 
             type="primary" 
-            size="large" 
+            size="small" 
             @click="fetchQuestions"
+            class="btn-refresh"
           >
             <el-icon><Refresh /></el-icon> 刷新题目
           </el-button>
-          <el-button type="primary" @click="saveToPersonalBank">
+          <el-button type="primary" size="small" @click="saveToPersonalBank" class="btn-save">
             <el-icon><Check /></el-icon> 生成
           </el-button>
-          <el-button type="success" @click="generatePDF">
+          <el-button type="success" size="small" @click="generatePDF" class="btn-export">
             <el-icon><Document /></el-icon> 导出试卷
           </el-button>
         </div>
       </div>
 
-      <!-- 搜索条件行 -->
-      <el-table
-        :data="categoryRows"
-        border
-        :row-key="(row) => row.id"
-        class="search-table"
-      >
-        <el-table-column label="类目" prop="categoryId" width="200">
-          <template #default="scope">
+      <!-- 搜索条件行 - 一行一个筛选组 -->
+      <div class="filter-container space-y-3">
+        <div 
+          v-for="(row, rowIndex) in categoryRows" 
+          :key="row.id"
+          class="filter-row flex items-center gap-6 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <!-- 类目 -->
+          <div class="filter-item flex items-center gap-2 flex-1 min-w-[220px]">
+            <label class="text-gray-700 font-medium whitespace-nowrap">类目:</label>
             <el-tree-select
-              v-model="scope.row.categoryId"
+              v-model="row.categoryId"
               :data="categoryOptions"
               :props="treeSelectProps"
               value-key="id"
-              placeholder="请选择类目"
-              style="width: 100%"
-              class="category-tree-select"
+              placeholder="请选择"
+              check-strictly
+              style="width: 200px"
+              class="category-tree-select rounded-md"
             >
               <template #default="{ data }">
                 <span :class="{ 'parent-node': data.children && data.children.length > 0 }">{{ data.name }}</span>
               </template>
             </el-tree-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="标签" prop="tagId" width="180">
-          <template #default="scope">
-            <el-select v-model="scope.row.tagId" placeholder="请选择标签" clearable style="width: 100%">
+          </div>
+          
+          <!-- 标签 -->
+          <div class="filter-item flex items-center gap-2 flex-1 min-w-[300px]">
+            <label class="text-gray-700 font-medium whitespace-nowrap">标签:</label>
+            <el-select 
+              v-model="row.tagId" 
+              placeholder="请选择" 
+              clearable 
+              style="width: 150px"
+              class="rounded-md"
+            >
               <el-option
                 v-for="tag in tagNameList"
                 :key="tag.id"
@@ -63,44 +73,53 @@
                 :value="tag.id"
               />
             </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="数量" prop="quantity" width="120">
-          <template #default="scope">
+          </div>
+          
+          <!-- 数量 -->
+          <div class="filter-item flex items-center gap-2 flex-1 min-w-[160px]">
+            <label class="text-gray-700 font-medium whitespace-nowrap">数量:</label>
             <el-input 
-              v-model.number="scope.row.quantity" 
+              v-model.number="row.quantity" 
               type="number" 
               min="1" 
               placeholder="输入数量"
-              style="width: 100%"
+              style="width: 80px"
               @change="validateQuantity"
+              class="rounded-md"
             />
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="80">
-          <template #default="scope">
+          </div>
+          
+          <!-- 操作 -->
+          <div class="filter-item flex items-center gap-2 min-w-[80px]">
+            <label class="text-gray-700 font-medium whitespace-nowrap">操作:</label>
             <el-button 
               link 
               type="danger" 
               size="small" 
-              @click="deleteRow(scope.row.id)"
+              @click="deleteRow(row.id)"
+              class="delete-btn"
             >
               <el-icon><Delete /></el-icon>
             </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态提示 -->
+      <div v-if="categoryRows.length === 0" class="empty-filter text-center py-6 text-gray-500 border border-dashed rounded-lg mt-3">
+        暂无筛选条件，请点击"增加类目"添加
+      </div>
     </div>
 
     <!-- 题目展示区域 -->
-    <div class="questions-area">
-      <div class="questions-header">
-        <h3>笔试题目</h3>
+    <div class="questions-area mt-6 bg-white rounded-xl shadow-sm p-4">
+      <div class="questions-header flex justify-between items-center">
+        <h3 class="text-lg font-semibold">笔试题目</h3>
         <el-tag type="info">共 {{ allQuestions.length }} 题</el-tag>
       </div>
 
-      <el-card v-if="loading" class="loading-card">
-        <div class="loading-container">
+      <el-card v-if="loading" class="loading-card border-0 shadow-none bg-transparent">
+        <div class="loading-container flex flex-col items-center py-10">
           <el-icon class="is-loading" color="#409eff" size="48">
             <Loading />
           </el-icon>
@@ -108,125 +127,147 @@
         </div>
       </el-card>
 
-      <div v-else-if="allQuestions.length === 0" class="empty-state">
+      <div v-else-if="allQuestions.length === 0" class="empty-state py-10">
         <el-empty description="请设置筛选条件并点击刷新题目" />
       </div>
 
-      <div v-else class="questions-list">
-        <!-- 按题型分组展示 -->
-        <div v-for="(typeGroup, type) in groupedQuestions" :key="type" class="question-type-group">
-          <h4 class="type-title">
-            {{ getQuestionTypeName(type) }} (共 {{ typeGroup.length }} 题)
-          </h4>
-          
-          <div class="type-questions">
-            <el-card 
-              v-for="(question, index) in typeGroup" 
-              :key="question.id" 
-              class="question-card"
-            >
-              <div class="question-header">
-                <span class="question-number">{{ index + 1 }}.</span>
-                <span class="question-title">{{ question.title }}</span>
+      <div v-else>
+        <!-- 题目列表 -->
+        <div class="questions-list space-y-4">
+          <el-card 
+            v-for="(question, index) in currentPageQuestions" 
+            :key="question.id" 
+            class="question-card border rounded-lg overflow-hidden transition-all hover:shadow-md"
+          >
+            <div class="question-header p-4 pb-0">
+              <span class="question-number text-primary font-bold mr-2">
+                {{ (currentPage - 1) * pageSize + index + 1 }}.
+              </span>
+              <span class="question-title font-semibold">
+                {{ question.title }}
+                <span class="question-type-tag text-gray-500 text-sm ml-2 font-normal">
+                  ({{ getQuestionTypeName(question.questionType) }})
+                </span>
+              </span>
+            </div>
+            
+            <div class="question-content p-4 pt-2" v-html="question.content"></div>
+            
+            <!-- 单选题 -->
+            <div v-if="question.questionType == 1" class="question-options p-4 pt-0 pb-4">
+              <div 
+                v-for="(option, optIndex) in question.options" 
+                :key="option.id" 
+                class="option-item flex items-center p-3 mb-2 rounded-md border transition-all cursor-pointer hover:bg-gray-50"
+                @click="selectSingleOption(question.id, optIndex)"
+                :class="{ 'selected-option': userAnswers[question.id] === optIndex }"
+              >
+                <span class="option-letter font-bold text-primary mr-3">
+                  {{ String.fromCharCode(65 + optIndex) }}.
+                </span>
+                <span class="option-content">{{ option.optionContent }}</span>
               </div>
-              
-              <div class="question-content" v-html="question.content"></div>
-              
-              <!-- 不同题型的特有内容和答题区域 -->
-              
-              <!-- 单选题 -->
-              <div v-if="type == 1" class="question-options">
-                <div 
-                  v-for="(option, optIndex) in question.options" 
-                  :key="option.id" 
-                  class="option-item"
-                  @click="selectSingleOption(question.id, optIndex)"
-                  :class="{ 'selected-option': userAnswers[question.id] === optIndex }"
-                >
-                  <span class="option-letter">{{ String.fromCharCode(65 + optIndex) }}.</span>
-                  <span class="option-content">{{ option.optionContent }}</span>
-                </div>
+            </div>
+            
+            <!-- 多选题 -->
+            <div v-if="question.questionType == 2" class="question-options p-4 pt-0 pb-4">
+              <div 
+                v-for="(option, optIndex) in question.options" 
+                :key="option.id" 
+                class="option-item flex items-center p-3 mb-2 rounded-md border transition-all cursor-pointer hover:bg-gray-50"
+                @click="toggleMultipleOption(question.id, optIndex)"
+                :class="{ 'selected-option': userAnswers[question.id]?.includes(optIndex) }"
+              >
+                <span class="option-letter font-bold text-primary mr-3">
+                  {{ String.fromCharCode(65 + optIndex) }}.
+                </span>
+                <span class="option-content">{{ option.optionContent }}</span>
               </div>
-              
-              <!-- 多选题 -->
-              <div v-if="type == 2" class="question-options">
-                <div 
-                  v-for="(option, optIndex) in question.options" 
-                  :key="option.id" 
-                  class="option-item"
-                  @click="toggleMultipleOption(question.id, optIndex)"
-                  :class="{ 'selected-option': userAnswers[question.id]?.includes(optIndex) }"
-                >
-                  <span class="option-letter">{{ String.fromCharCode(65 + optIndex) }}.</span>
-                  <span class="option-content">{{ option.optionContent }}</span>
-                </div>
+            </div>
+            
+            <!-- 判断题 -->
+            <div v-if="question.questionType == 3" class="judge-options p-4 pt-0 pb-4 flex gap-4">
+              <div 
+                class="option-item flex items-center p-3 rounded-md border transition-all cursor-pointer hover:bg-gray-50 flex-1"
+                @click="setJudgeAnswer(question.id, true)"
+                :class="{ 'selected-option': userAnswers[question.id] === true }"
+              >
+                <span class="option-letter font-bold text-primary mr-3">A.</span>
+                <span class="option-content">正确</span>
               </div>
-              
-              <!-- 判断题 -->
-              <div v-if="type == 3" class="judge-options">
-                <div 
-                  class="option-item"
-                  @click="setJudgeAnswer(question.id, true)"
-                  :class="{ 'selected-option': userAnswers[question.id] === true }"
-                >
-                  <span class="option-letter">A.</span>
-                  <span class="option-content">正确</span>
-                </div>
-                <div 
-                  class="option-item"
-                  @click="setJudgeAnswer(question.id, false)"
-                  :class="{ 'selected-option': userAnswers[question.id] === false }"
-                >
-                  <span class="option-letter">B.</span>
-                  <span class="option-content">错误</span>
-                </div>
+              <div 
+                class="option-item flex items-center p-3 rounded-md border transition-all cursor-pointer hover:bg-gray-50 flex-1"
+                @click="setJudgeAnswer(question.id, false)"
+                :class="{ 'selected-option': userAnswers[question.id] === false }"
+              >
+                <span class="option-letter font-bold text-primary mr-3">B.</span>
+                <span class="option-content">错误</span>
               </div>
-              
-              <!-- 填空题 -->
-              <div v-if="type == 4" class="answer-input-area">
-                <el-input 
-                  v-model="userAnswers[question.id]" 
-                  placeholder="请输入答案" 
-                  clearable
-                />
-              </div>
-              
-              <!-- 简答题 -->
-              <div v-if="type == 5" class="answer-input-area">
-                <el-input 
-                  v-model="userAnswers[question.id]" 
-                  type="textarea" 
-                  :rows="4" 
-                  placeholder="请输入答案" 
-                  clearable
-                />
-              </div>
-              
-              <!-- 编程题 -->
-              <div v-if="type == 6" class="answer-input-area">
-                <el-input 
-                  v-model="userAnswers[question.id]" 
-                  type="textarea" 
-                  :rows="8" 
-                  placeholder="请输入代码" 
-                  clearable
-                  monospace
-                />
-                <p class="code-hint">提示：可使用Tab键缩进代码</p>
-              </div>
-            </el-card>
-          </div>
+            </div>
+            
+            <!-- 填空题 -->
+            <div v-if="question.questionType == 4" class="answer-input-area p-4 pt-0 pb-4">
+              <el-input 
+                v-model="userAnswers[question.id]" 
+                placeholder="请输入答案" 
+                clearable
+                class="rounded-md"
+              />
+            </div>
+            
+            <!-- 简答题 -->
+            <div v-if="question.questionType == 5" class="answer-input-area p-4 pt-0 pb-4">
+              <el-input 
+                v-model="userAnswers[question.id]" 
+                type="textarea" 
+                :rows="4" 
+                placeholder="请输入答案" 
+                clearable
+                class="rounded-md"
+              />
+            </div>
+            
+            <!-- 编程题 -->
+            <div v-if="question.questionType == 6" class="answer-input-area p-4 pt-0 pb-4">
+              <el-input 
+                v-model="userAnswers[question.id]" 
+                type="textarea" 
+                :rows="8" 
+                placeholder="请输入代码" 
+                clearable
+                monospace
+                class="rounded-md"
+              />
+              <p class="code-hint text-xs text-gray-500 mt-2">提示：可使用Tab键缩进代码</p>
+            </div>
+          </el-card>
+        </div>
+        
+        <!-- 分页控件 -->
+        <div class="pagination-container mt-6 flex justify-center">
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[5, 10, 15, 20]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="allQuestions.length"
+            background
+            class="rounded-lg"
+          >
+          </el-pagination>
         </div>
       </div>
     </div>
     
     <!-- 底部统计栏 -->
-    <div class="stats-bar">
-      <div class="question-count">
-        <span>总题数: {{ allQuestions.length }}</span>
-        <span>已答题: {{ answeredCount }}</span>
+    <div class="stats-bar mt-6 bg-white rounded-xl shadow-sm p-4 flex flex-wrap justify-between items-center gap-4">
+      <div class="question-count flex gap-6">
+        <span class="text-gray-700"><i class="fa fa-list-ul mr-1"></i>总题数: {{ allQuestions.length }}</span>
+        <span class="text-gray-700"><i class="fa fa-check-square-o mr-1"></i>已答题: {{ answeredCount }}</span>
       </div>
-      <div>当前时间: {{ currentTime }}</div>
+      <div class="text-gray-700"><i class="fa fa-clock-o mr-1"></i>当前时间: {{ currentTime }}</div>
     </div>
   </div>
 </template>
@@ -260,16 +301,30 @@ const allQuestions = ref([]);
 const userAnswers = ref({});
 const timer = ref(null);
 const currentTime = ref('');
+// 分页相关
+const currentPage = ref(1);
+const pageSize = ref(5);
 
 // 树形选择器配置
 const treeSelectProps = {
-  value: 'categoryId',
-  label: 'categoryName',
-  children: 'children'
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  // 禁用父节点（非叶子节点）
+  disabled: (data) => {
+    return data.children && data.children.length > 0;
+  }
 };
 
 // 初始化数据
 let rowId = 1;
+
+// 获取当前页的题目
+const currentPageQuestions = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize.value;
+  const endIndex = startIndex + pageSize.value;
+  return allQuestions.value.slice(startIndex, endIndex);
+});
 
 // 获取题型名称
 const getQuestionTypeName = (typeValue) => {
@@ -281,20 +336,7 @@ const getQuestionTypeName = (typeValue) => {
   return type ? type.label : '未知题型';
 };
 
-// 按题型分组题目
-const groupedQuestions = computed(() => {
-  const groups = {};
-  allQuestions.value.forEach(question => {
-    const type = question.questionType;
-    if (!groups[type]) {
-      groups[type] = [];
-    }
-    groups[type].push(question);
-  });
-  return groups;
-});
-
-// 计算已答题数 - 修复了单选题选择选项A的问题
+// 计算已答题数
 const answeredCount = computed(() => {
   return allQuestions.value.filter(question => {
     const answer = userAnswers.value[question.id];
@@ -331,26 +373,22 @@ const loadCategoryAndTags = async () => {
     // 加载类目树
     const categoryRes = await listCategory({});
     let categories = categoryRes.data || [];
-    console.log('类目原始数据:', categories); // 添加调试日志
-    // 构建树形结构，兼容多种顶级类目标识
+    // 构建树形结构
     const buildTree = (data, parentId = null) => {
       return data
         .filter(item => {
-          // 处理多种可能的顶级类目标识
           const isTopLevel = [null, undefined, 0, -1, '0', '-1', ''].includes(item.parentId);
           if (parentId === null) {
             return isTopLevel;
           }
-          // 转换为相同类型比较
           return Number(item.parentId) === Number(parentId);
         })
         .map(item => ({
           ...item,
-          children: buildTree(data, item.id) || [] // 确保children始终是数组
+          children: buildTree(data, item.id) || []
         }));
     };
     categoryOptions.value = buildTree(categories);
-    console.log('构建后的类目树:', categoryOptions.value); // 添加调试日志
     
     // 加载标签列表
     const tagRes = await listTag({});
@@ -414,11 +452,25 @@ const validateQuantity = () => {
   }
 };
 
-// 获取题目数据（添加数量总和校验）
+// 获取题目数据
 const fetchQuestions = async () => {
   if (categoryRows.value.length === 0) {
     ElMessage.warning('请添加至少一个筛选条件');
     return;
+  }
+
+// 校验是否所有筛选行的类目和标签组合唯一
+  const seen = new Set();
+
+  for (const row of categoryRows.value) {
+    const key = `${row.categoryId}-${row.tagId}`; // 用字符串表示组合
+
+    if (seen.has(key)) {
+      ElMessage.warning('存在重复的类目和标签组合，请勿重复添加');
+      return;
+    }
+
+    seen.add(key);
   }
 
   // 验证筛选条件
@@ -441,6 +493,7 @@ const fetchQuestions = async () => {
   loading.value = true;
   allQuestions.value = [];
   userAnswers.value = {};
+  currentPage.value = 1; // 重置为第一页
 
   try {
     for (const row of categoryRows.value) {
@@ -540,7 +593,7 @@ const setJudgeAnswer = (questionId, isCorrect) => {
   userAnswers.value[questionId] = isCorrect;
 };
 
-// 保存到个人题库（添加校验）
+// 保存到个人题库
 const saveToPersonalBank = () => {
   if (allQuestions.value.length === 0) {
     ElMessage.warning('请先加载题目');
@@ -553,8 +606,6 @@ const saveToPersonalBank = () => {
     return;
   }
   
-  // 这里预留保存到个人题库的功能
-  // 实际实现时会将当前筛选条件保存为个人题库
   ElMessageBox.confirm(
     `确定要将 ${allQuestions.value.length} 道题目保存到个人题库吗？`,
     '保存到个人题库',
@@ -564,7 +615,6 @@ const saveToPersonalBank = () => {
       type: 'info'
     }
   ).then(() => {
-    // 这里将实现保存逻辑
     console.log('保存题目到个人题库', allQuestions.value, userAnswers.value);
     ElMessage.success('题目已保存到个人题库');
   }).catch(() => {});
@@ -641,12 +691,37 @@ const generatePDF = () => {
   });
 };
 
-// 初始化
+// 分页相关方法
+const handleSizeChange = (val) => {
+  pageSize.value = val;
+  currentPage.value = 1; // 重置为第一页
+};
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val;
+  // 滚动到页面顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// 按题型分组题目（PDF生成用）
+const groupedQuestions = computed(() => {
+  const groups = {};
+  allQuestions.value.forEach(question => {
+    const type = question.questionType;
+    if (!groups[type]) {
+      groups[type] = [];
+    }
+    groups[type].push(question);
+  });
+  return groups;
+});
+
+// 生命周期钩子
 onMounted(() => {
   loadCategoryAndTags();
+  // 初始化一行筛选条件
   addCategoryRow();
-  
-  // 启动时间更新
+  // 启动定时器更新时间
   updateTime();
   timer.value = setInterval(updateTime, 1000);
 });
@@ -659,270 +734,253 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 按钮样式优化 */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-add, .btn-refresh, .btn-save, .btn-export {
+  flex: 1;
+  min-width: 100px;
+  border-radius: 6px !important;
+}
+
+/* 筛选行样式 */
+/* 筛选行样式 */
+.filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+}
+
+
+
+/* 题型标签样式 */
+.question-type-tag {
+  color: #606266;
+  font-size: 14px;
+  margin-left: 8px;
+  font-weight: normal;
+}
+
+/* 分页容器样式 */
+.pagination-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* 选中选项样式 */
+.selected-option {
+  background-color: #ecf5ff;
+  border-color: #91d5ff;
+}
+
+/* 题目卡片样式 */
+.question-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px !important;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.question-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* 选项样式优化 */
+.option-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.option-item:hover {
+  background-color: #f5f7fa;
+}
+
+/* 空筛选条件样式 */
+.empty-filter {
+  color: #909399;
+  padding: 20px;
+  text-align: center;
+  border: 1px dashed #dcdfe6;
+  border-radius: 8px;
+}
+
+/* 其他样式 */
 .exam-container {
   padding: 20px;
   background-color: #f5f7fa;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 40px);
 }
 
 .exam-header {
   margin-bottom: 20px;
-  padding: 15px 20px;
   color: #1f2329;
-}
-
-.category-search-area {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .search-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.search-table {
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.questions-area {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .questions-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #ebeef5;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .loading-card {
   text-align: center;
-  padding: 50px 0;
-  background: transparent;
-  border: none;
+  padding: 40px 0;
 }
 
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
 }
 
 .empty-state {
-  padding: 50px 0;
+  padding: 40px 0;
   text-align: center;
-  background-color: #fff;
-  border-radius: 8px;
-}
-
-.questions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.question-type-group {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.type-title {
-  font-size: 18px;
-  color: #1f2329;
-  font-weight: 600;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #409eff;
-}
-
-.type-questions {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.question-card {
-  transition: all 0.3s;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background-color: #fafbfc;
-}
-
-.question-card:hover {
-  border-color: #409eff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.question-header {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.question-number {
-  font-weight: bold;
-  margin-right: 8px;
-  color: #409eff;
-  font-size: 16px;
-  min-width: 24px;
-}
-
-.question-title {
-  font-weight: 600;
-  flex: 1;
-  color: #1f2329;
-  font-size: 16px;
 }
 
 .question-content {
-  margin-bottom: 20px;
   line-height: 1.7;
   color: #303133;
-  font-size: 15px;
-}
-
-.question-options {
-  margin-left: 20px;
-  margin-bottom: 15px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 12px;
-}
-
-.option-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 12px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid #dcdfe6;
-  background-color: #fafbfc;
-}
-
-.option-item:hover {
-  background-color: #f0f7ff;
-  border-color: #c6e2ff;
-}
-
-.option-letter {
-  font-weight: bold;
-  margin-right: 10px;
-  min-width: 22px;
-  color: #409eff;
-}
-
-.option-content {
-  flex: 1;
-}
-
-.selected-option {
-  background-color: #e6f7ff;
-  border-color: #91d5ff;
-  box-shadow: inset 0 0 0 1px #91d5ff;
-}
-
-.judge-options {
-  display: flex;
-  gap: 20px;
-  margin-left: 20px;
-  margin-bottom: 15px;
-}
-
-.answer-input-area {
-  margin-top: 10px;
 }
 
 .code-hint {
-  margin-top: 8px;
-  font-size: 13px;
+  font-size: 12px;
   color: #909399;
-  text-align: right;
+  margin-top: 8px;
 }
 
 .stats-bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 20px;
-  background-color: white;
-  border-top: 1px solid #ebeef5;
-  font-size: 14px;
   color: #606266;
-  border-radius: 0 0 8px 8px;
+  font-size: 14px;
 }
 
-.question-count {
-  display: flex;
-  gap: 20px;
+/* 响应式调整 */
+@media (max-width: 1024px) {
+  .filter-row {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 768px) {
-  .search-header {
+  .filter-row {
     flex-direction: column;
-    gap: 15px;
     align-items: flex-start;
+    gap: 10px;
   }
   
   .action-buttons {
-    width: 100%;
-    justify-content: center;
+    flex-wrap: wrap;
   }
   
-  .questions-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
+  .btn-add, .btn-refresh, .btn-save, .btn-export {
+    flex: 1 0 45%;
   }
   
   .stats-bar {
     flex-direction: column;
-    gap: 10px;
-    align-items: center;
-  }
-  
-  .question-count {
-    justify-content: center;
+    align-items: flex-start;
   }
 }
 
-/* 树形选择器样式 - 加粗父节点 */
-:deep(.category-tree-select) .el-tree-node__content .el-tree-node__label {
-  font-weight: normal;
+
+
+/* 按钮通用优化 */
+.el-button {
+  transition: all 0.2s ease;
+}
+.el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-:deep(.category-tree-select) .el-tree-node.is-disabled > .el-tree-node__content .el-tree-node__label {
-  font-weight: bold !important;
-  color: #1f2329 !important;
+/* 筛选行内元素间距和对齐优化 */
+.filter-item label {
+  font-size: 14px;
+  color: #555;
+}
+.filter-item .el-select,
+.filter-item .el-input {
+  font-size: 14px;
+}
+.filter-item .el-tree-select {
+  width: 200px; /* 保持原有宽度，优化字体适配 */
 }
 
-:deep(.category-tree-select) .el-tree-node.is-disabled {
-  cursor: not-allowed;
+/* 操作按钮颜色加深，hover 更明显 */
+.delete-btn {
+  color: #dc3545; 
 }
-.parent-node {
-  font-weight: bold;
+.delete-btn:hover {
+  color: #c82333;
+}
+
+/* 题目卡片阴影优化，hover 效果更柔和 */
+.question-card {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.question-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 分页组件样式优化 */
+.el-pagination {
+  padding: 10px 0;
+}
+.el-pagination__sizes {
+  margin: 0 10px;
+}
+.el-pagination__total {
+  color: #666;
+}
+
+/* 底部统计栏图标与文字对齐优化 */
+.stats-bar i {
+  vertical-align: middle;
+  margin-top: -2px;
+}
+
+/* 空状态提示文字颜色和间距优化 */
+.empty-filter {
+  color: #888;
+  border-color: #eee;
+}
+
+/* 加载动画区域居中优化（当题目加载时） */
+.loading-container {
+  min-height: 200px;
+  justify-content: center;
+}
+
+/* 代码提示文字颜色调整，更柔和 */
+.code-hint {
+  color: #777;
 }
 </style>
