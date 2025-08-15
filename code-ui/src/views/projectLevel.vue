@@ -33,19 +33,9 @@
                 <div class="left-aside-item">
                   <img class="img-title1" src="https://www.w3cschool.cn/statics/images/codecamp/certificate.png" alt="">
                   <ul>
-                    <li><B>HTML高级认证</B></li>
+                    <li><B>{{certificateName}}认证</B></li>
                     <li>通关HTML基础闯关且评分>80分，可领取</li>
                     <li>纪念价值，学习证明、自我学习激励</li>
-                  </ul>
-                </div>
-              </li>
-              <li>
-                <div class="left-aside-item">
-                  <img class="img-title1" src="https://www.w3cschool.cn/statics/images/codecamp/certificate.png" alt="">
-                  <ul>
-                    <li><B>HTML大师认证</B></li>
-                    <li>通关HTML基础闯关且评分>80分，可领取</li>
-                    <li>根据证书编号查询、学习情况。学习经历、企业背调。凭证书我司可考虑优先聘用。</li>
                   </ul>
                 </div>
               </li>
@@ -167,7 +157,7 @@ import {getLevelDataList,getLevel} from "@/api/www/level"
 import {addQuestions} from "@/api/www/questions"
 import userStore from "@/store/modules/user"
 import { getModuleRank } from "@/api/www/rank"
-import {ref, getCurrentInstance, onMounted} from 'vue';
+import {ref, getCurrentInstance, onMounted,watch} from 'vue';
 import footerVue from "./footer.vue"
 import levleHeaderVue from "./levelHeader.vue"
 
@@ -188,7 +178,14 @@ const url = ref(import.meta.env.VITE_APP_BASE_API);
 
 const open = ref(false);
 const title = ref("");
+const certificateName = ref('');
 
+watch(() => route.query.menuName, (newName) => {
+  if(newName) {
+    moduleName.value = newName;
+    certificateName.value = newName.replace(/基础|入门/g, '').trim();
+  }
+}, { immediate: true });
 
 function getRankList() {
   getModuleRank(query.value.moduleId).then(response => {

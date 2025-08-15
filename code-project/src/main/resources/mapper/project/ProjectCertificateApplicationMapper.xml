@@ -9,6 +9,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="applicant"    column="applicant"    />
         <result property="idCard"    column="id_card"    />
         <result property="userId"    column="user_id"    />
+        <result property="userName"    column="userName"    />
         <result property="phone"    column="phone"    />
         <result property="receiveAddr"    column="receive_addr"    />
         <result property="certType"    column="cert_type"    />
@@ -19,10 +20,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="applicationStatus"    column="application_status"    />
     </resultMap>
 
     <sql id="selectProjectCertificateApplicationVo">
-        select id, applicant, id_card, user_id, phone, receive_addr, cert_type, remark, cert_price, pay_status, create_by, create_time, update_by, update_time from project_certificate_application
+        select a.id, a.applicant, a.id_card, a.user_id, u.user_name as userName, a.phone, a.receive_addr,
+               a.cert_type, a.remark, a.cert_price, a.pay_status, a.create_by, a.create_time,
+               a.update_by, a.update_time,a.application_status
+        from project_certificate_application a
+        left join sys_user u on u.user_id = a.user_id
     </sql>
 
     <select id="selectProjectCertificateApplicationList" parameterType="ProjectCertificateApplication" resultMap="ProjectCertificateApplicationResult">
@@ -30,6 +36,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>  
             <if test="applicant != null  and applicant != ''"> and applicant = #{applicant}</if>
             <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
+            <if test="userId != null  and userId != ''"> and a.user_id = #{userId}</if>
         </where>
     </select>
     
@@ -54,6 +61,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time,</if>
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
+            <if test="applicationStatus != null">application_status,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="applicant != null and applicant != ''">#{applicant},</if>
@@ -69,6 +77,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">#{createTime},</if>
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
+            <if test="applicationStatus != null">#{applicationStatus},</if>
          </trim>
     </insert>
 
@@ -88,6 +97,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="applicationStatus != null">application_status = #{applicationStatus},</if>
         </trim>
         where id = #{id}
     </update>

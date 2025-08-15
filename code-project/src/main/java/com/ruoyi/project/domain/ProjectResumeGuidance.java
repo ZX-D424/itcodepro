@@ -26,6 +26,7 @@ public class ProjectResumeGuidance extends BaseEntity
     @Excel(name = "用户")
     private Long userId;
     private String nickName;
+    private String userName;
 
     /** 联系电话 */
     @Excel(name = "联系电话")
@@ -68,6 +69,7 @@ public class ProjectResumeGuidance extends BaseEntity
     /** 修改者 */
     @Excel(name = "修改者")
     private String modifier;
+    private String appendix;
 
     public void setId(Long id) 
     {

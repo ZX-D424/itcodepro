@@ -59,8 +59,7 @@
 
     <el-table v-loading="loading" :data="guidanceList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="用户" align="center" prop="userId" />
+      <el-table-column label="用户账号" align="center" prop="userName" />
       <el-table-column label="联系电话" align="center" prop="phone" />
       <el-table-column label="指导人" align="center" prop="nickName" />
       <el-table-column label="简历类型" align="center" prop="resumeType">
@@ -78,6 +77,7 @@
           <span>{{ parseTime(scope.row.appointmentTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="附件" align="center" prop="appendix" />
       <el-table-column label="指导完成时间" align="center" prop="completeTime" width="110">
         <template #default="scope">
           <span>{{ parseTime(scope.row.completeTime, '{y}-{m}-{d}') }}</span>
@@ -143,6 +143,9 @@
         </el-form-item>
         <el-form-item label="指导反馈">
           <editor v-model="form.feedback" :min-height="192"/>
+        </el-form-item>
+        <el-form-item label="上传附件">
+          <editor v-model="form.appendix" :min-height="192"/>
         </el-form-item>
       </el-form>
       <template #footer>

@@ -9,7 +9,6 @@
         </video>
     </div>
 
-    <!-- 会员中心内容 -->
     <div class="member-container">
         <div class="member-sidebar">
             <h2>全部菜单</h2>
@@ -17,7 +16,7 @@
                 <li
                         v-for="(item, index) in menuItems"
                         :key="index"
-                        @click="handleMenuClick(item)"
+                        @click="switchTab(item.component)"
                         :class="{ 'active': activeTab === item.component }"
                 >
                     <img :src="item.icon"> {{ item.name }}
@@ -40,30 +39,37 @@
     import userStore from "@/store/modules/user"
     import profileVue from "./personalCenter/profile.vue"
     import questionRecodeVue from "./personalCenter/questionRecode.vue"
-    import payRecodeVue from "./personalCenter/payRecode.vue"
+    import guidanceVue from "./personalCenter/guidance.vue"
+    import simulationVue from "./personalCenter/simulation.vue"
     import certificateVue from "./personalCenter/certificate.vue"
     import orderVue from "./personalCenter/order.vue"
     import friendVue from "./personalCenter/friend.vue"
-    import dashboardIcon from '@/assets/icons/svg/dashboard.svg'
+    import profileIcon from '@/assets/icons/个人资料.png'
+    import questionRecodeIcon from '@/assets/icons/答题记录.png'
+    import payRecodeIcon from '@/assets/icons/个人资料.png'
+    import certificateIcon from '@/assets/icons/证书.png'
+    import orderIcon from '@/assets/icons/订单.png'
+    import friendIcon from '@/assets/icons/好友.png'
 
 
     const user = userStore();
 
     // 定义菜单项
     const menuItems = [
-        { name: '个人资料', icon: dashboardIcon, component: 'profileVue' },
-        { name: '我的答题记录', icon: dashboardIcon, component: 'questionRecodeVue' },
-        { name: '我的购买记录', icon: dashboardIcon, component: 'payRecodeVue' },
-        { name: '我的证书', icon: dashboardIcon, component: 'certificateVue' },
-        { name: '我的订单', icon: dashboardIcon, component: 'orderVue' },
-        { name: '我的好友', icon: dashboardIcon, component: 'friendVue' },
-        { name: '退出系统', icon: dashboardIcon, component: 'logout', isLogout: true }
+        { name: '个人资料', icon: profileIcon, component: 'profileVue' },
+        { name: '我的答题记录', icon: questionRecodeIcon, component: 'questionRecodeVue' },
+        { name: '简历指导', icon: questionRecodeIcon, component: 'guidanceVue' },
+        { name: '面试模拟', icon: payRecodeIcon, component: 'simulationVue' },
+        { name: '我的证书', icon: certificateIcon, component: 'certificateVue' },
+        { name: '我的订单', icon: orderIcon, component: 'orderVue' },
+        { name: '我的好友', icon: friendIcon, component: 'friendVue' },
     ]
 
     const components = {
         profileVue,
         questionRecodeVue,
-        payRecodeVue,
+        guidanceVue,
+        simulationVue,
         certificateVue,
         orderVue,
         friendVue
@@ -80,14 +86,6 @@
         return activeItem ? activeItem.name : ''
     }
 
-    const handleMenuClick = (item) => {
-        if (item.isLogout) {
-            user.logOut();
-        } else {
-            switchTab(item.component)
-        }
-    }
-
 </script>
 
 <style>
@@ -97,17 +95,15 @@
     /* 会员中心样式 */
     .member-container {
         display: flex;
-        max-width: 1100px;
+        width: 90%;
         margin: 20px auto;
-        gap: 20px; /* 增加两个模块之间的间距 */
     }
 
     .member-sidebar {
         width: 250px;
-        height: 450px;
         padding: 25px;
         background: #fff;
-        border-radius: 8px;
+        border-radius: 8px 0 0 8px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         margin-left: 20px;
         background: rgba(255, 255, 245, 0.5);
@@ -143,7 +139,7 @@
     }
 
     .member-sidebar li.active img {
-        filter: invert(39%) sepia(92%) saturate(1745%) hue-rotate(194deg) brightness(97%) contrast(101%); /* 只修改图片颜色 */
+        filter: invert(39%) sepia(92%) saturate(1745%) hue-rotate(194deg) brightness(97%) contrast(101%);
     }
 
     .member-sidebar li img {
@@ -166,7 +162,7 @@
         flex: 1;
         padding: 25px;
         background: #fff;
-        border-radius: 8px;
+        border-radius: 0 8px 8px 0;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         margin-right: 20px;
         background: rgba(255, 255, 245, 0.5);

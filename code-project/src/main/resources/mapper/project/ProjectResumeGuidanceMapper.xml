@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="ProjectResumeGuidance" id="ProjectResumeGuidanceResult">
         <result property="id"    column="id"    />
         <result property="userId"    column="user_id"    />
+        <result property="userName"    column="userName"    />
         <result property="nickName"    column="nickName"    />
         <result property="phone"    column="phone"    />
         <result property="guideId"    column="guide_id"    />
@@ -20,20 +21,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime"    column="create_time"    />
         <result property="modifier"    column="modifier"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="appendix"    column="appendix"    />
     </resultMap>
 
     <sql id="selectProjectResumeGuidanceVo">
-        select g.id, g.user_id, g.phone, g.guide_id, m.nick_name as nickName, g.resume_type, g.guidance_status,
+        select g.id, g.user_id, u.user_name as userName,g.phone, g.guide_id,
+               m.nick_name as nickName, g.resume_type, g.guidance_status,
                g.appointment_time, g.complete_time, g.payment_status, g.feedback, g.creator,
-               g.create_time, g.modifier, g.update_time
+               g.create_time, g.modifier, g.update_time,g.appendix
         from project_resume_guidance g
         left join project_member m on g.guide_id = m.id
+        left join sys_user u on u.user_id = g.user_id
     </sql>
 
     <select id="selectProjectResumeGuidanceList" parameterType="ProjectResumeGuidance" resultMap="ProjectResumeGuidanceResult">
         <include refid="selectProjectResumeGuidanceVo"/>
         <where>  
-            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="userId != null "> and g.user_id = #{userId}</if>
             <if test="guideId != null "> and guide_id = #{guideId}</if>
         </where>
     </select>
@@ -59,6 +63,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time,</if>
             <if test="modifier != null">modifier,</if>
             <if test="updateTime != null">update_time,</if>
+            <if test="appendix != null">appendix,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
@@ -74,6 +79,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">#{createTime},</if>
             <if test="modifier != null">#{modifier},</if>
             <if test="updateTime != null">#{updateTime},</if>
+            <if test="appendix != null">#{appendix},</if>
          </trim>
     </insert>
 
@@ -93,6 +99,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="modifier != null">modifier = #{modifier},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="appendix != null">appendix = #{appendix},</if>
         </trim>
         where g.id = #{id}
     </update>

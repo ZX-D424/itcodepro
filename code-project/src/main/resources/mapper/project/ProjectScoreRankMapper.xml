@@ -12,6 +12,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="totalScore"    column="totalScore"    />
         <result property="userId"    column="user_id"    />
         <result property="nickName"    column="nickName"    />
+        <result property="userName"    column="userName"    />
         <result property="createTime"    column="create_time"    />
         <result property="createBy"    column="create_by"    />
         <result property="updateBy"    column="update_by"    />
@@ -19,14 +20,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="scoreTime"    column="score_time"    />
         <result property="totalRank"    column="totalRank"    />
         <result property="moduleRank"    column="moduleRank"    />
+        <result property="moduleName"    column="moduleName"    />
     </resultMap>
 
     <sql id="selectProjectScoreRankVo">
-        select r.id, r.module_id, r.place, r.user_id, u.nick_name as nickName, r.create_time, r.score,r.total_score,
+        select r.id, r.module_id, m.name as moduleName, r.place, r.user_id, u.nick_name as nickName,
+               u.user_name as userName, r.create_time, r.score,r.total_score,
                r.create_by, r.update_by, r.update_time,
                r.score_time from project_score_rank r
         left join sys_user u on u.user_id = r.user_id
-
+        left join project_module m on m.id = r.module_id
     </sql>
 
     <select id="selectProjectScoreRankList" parameterType="ProjectScoreRank" resultMap="ProjectScoreRankResult">
