@@ -3,31 +3,28 @@
     <!-- 页面标题和操作区 -->
     <div class="exam-header">
       <h2>笔试题目组卷</h2>
-      <div class="header-actions">
-        <el-button type="primary" @click="saveToPersonalBank">
-          <el-icon><Check /></el-icon> 生成
-        </el-button>
-        <el-button type="success" @click="generatePDF">
-          <el-icon><Document /></el-icon> 导出试卷
-        </el-button>
-      </div>
     </div>
 
     <!-- 类目搜索区域 -->
     <div class="category-search-area">
       <div class="search-header">
         <h3>题目筛选条件</h3>
-        <div>
+        <div class="action-buttons">
           <el-button type="primary" size="small" @click="addCategoryRow">
             <el-icon><Plus /></el-icon> 增加类目
           </el-button>
           <el-button 
-            type="danger" 
-            size="small" 
-            @click="deleteSelectedRows" 
-            :disabled="selectedRowKeys.length === 0"
+            type="primary" 
+            size="large" 
+            @click="fetchQuestions"
           >
-            <el-icon><Delete /></el-icon> 删除所选
+            <el-icon><Refresh /></el-icon> 刷新题目
+          </el-button>
+          <el-button type="primary" @click="saveToPersonalBank">
+            <el-icon><Check /></el-icon> 生成
+          </el-button>
+          <el-button type="success" @click="generatePDF">
+            <el-icon><Document /></el-icon> 导出试卷
           </el-button>
         </div>
       </div>
@@ -37,22 +34,23 @@
         :data="categoryRows"
         border
         :row-key="(row) => row.id"
-        :selected-row-keys="selectedRowKeys"
-        @selection-change="handleSelectionChange"
         class="search-table"
       >
-        <el-table-column type="selection" width="55" />
         <el-table-column label="类目" prop="categoryId" width="200">
           <template #default="scope">
             <el-tree-select
               v-model="scope.row.categoryId"
               :data="categoryOptions"
-              :props="{ value: 'id', label: 'name', children: 'children' }"
+              :props="treeSelectProps"
               value-key="id"
               placeholder="请选择类目"
-              check-strictly
               style="width: 100%"
-            />
+              class="category-tree-select"
+            >
+              <template #default="{ data }">
+                <span :class="{ 'parent-node': data.children && data.children.length > 0 }">{{ data.name }}</span>
+              </template>
+            </el-tree-select>
           </template>
         </el-table-column>
         <el-table-column label="标签" prop="tagId" width="180">
@@ -75,6 +73,7 @@
               min="1" 
               placeholder="输入数量"
               style="width: 100%"
+              @change="validateQuantity"
             />
           </template>
         </el-table-column>
@@ -91,17 +90,6 @@
           </template>
         </el-table-column>
       </el-table>
-      
-      <div style="margin-top: 20px; text-align: center;">
-        <el-button 
-          type="primary" 
-          size="large" 
-          @click="fetchQuestions"
-          style="width: 200px;"
-        >
-          <el-icon><Refresh /></el-icon> 刷新题目
-        </el-button>
-      </div>
     </div>
 
     <!-- 题目展示区域 -->
@@ -144,7 +132,7 @@
               
               <div class="question-content" v-html="question.content"></div>
               
-              <!-- 不同题型的选项展示（只读） -->
+              <!-- 不同题型的特有内容和答题区域 -->
               
               <!-- 单选题 -->
               <div v-if="type == 1" class="question-options">
@@ -152,6 +140,8 @@
                   v-for="(option, optIndex) in question.options" 
                   :key="option.id" 
                   class="option-item"
+                  @click="selectSingleOption(question.id, optIndex)"
+                  :class="{ 'selected-option': userAnswers[question.id] === optIndex }"
                 >
                   <span class="option-letter">{{ String.fromCharCode(65 + optIndex) }}.</span>
                   <span class="option-content">{{ option.optionContent }}</span>
@@ -164,6 +154,8 @@
                   v-for="(option, optIndex) in question.options" 
                   :key="option.id" 
                   class="option-item"
+                  @click="toggleMultipleOption(question.id, optIndex)"
+                  :class="{ 'selected-option': userAnswers[question.id]?.includes(optIndex) }"
                 >
                   <span class="option-letter">{{ String.fromCharCode(65 + optIndex) }}.</span>
                   <span class="option-content">{{ option.optionContent }}</span>
@@ -172,17 +164,56 @@
               
               <!-- 判断题 -->
               <div v-if="type == 3" class="judge-options">
-                <div class="option-item">
+                <div 
+                  class="option-item"
+                  @click="setJudgeAnswer(question.id, true)"
+                  :class="{ 'selected-option': userAnswers[question.id] === true }"
+                >
                   <span class="option-letter">A.</span>
                   <span class="option-content">正确</span>
                 </div>
-                <div class="option-item">
+                <div 
+                  class="option-item"
+                  @click="setJudgeAnswer(question.id, false)"
+                  :class="{ 'selected-option': userAnswers[question.id] === false }"
+                >
                   <span class="option-letter">B.</span>
                   <span class="option-content">错误</span>
                 </div>
               </div>
               
-              <!-- 填空题、简答题和编程题不需要特殊展示 -->
+              <!-- 填空题 -->
+              <div v-if="type == 4" class="answer-input-area">
+                <el-input 
+                  v-model="userAnswers[question.id]" 
+                  placeholder="请输入答案" 
+                  clearable
+                />
+              </div>
+              
+              <!-- 简答题 -->
+              <div v-if="type == 5" class="answer-input-area">
+                <el-input 
+                  v-model="userAnswers[question.id]" 
+                  type="textarea" 
+                  :rows="4" 
+                  placeholder="请输入答案" 
+                  clearable
+                />
+              </div>
+              
+              <!-- 编程题 -->
+              <div v-if="type == 6" class="answer-input-area">
+                <el-input 
+                  v-model="userAnswers[question.id]" 
+                  type="textarea" 
+                  :rows="8" 
+                  placeholder="请输入代码" 
+                  clearable
+                  monospace
+                />
+                <p class="code-hint">提示：可使用Tab键缩进代码</p>
+              </div>
             </el-card>
           </div>
         </div>
@@ -193,6 +224,7 @@
     <div class="stats-bar">
       <div class="question-count">
         <span>总题数: {{ allQuestions.length }}</span>
+        <span>已答题: {{ answeredCount }}</span>
       </div>
       <div>当前时间: {{ currentTime }}</div>
     </div>
@@ -223,11 +255,18 @@ const questionTypes = [
 const categoryOptions = ref([]);
 const tagNameList = ref([]);
 const categoryRows = ref([]);
-const selectedRowKeys = ref([]);
 const loading = ref(false);
 const allQuestions = ref([]);
+const userAnswers = ref({});
 const timer = ref(null);
 const currentTime = ref('');
+
+// 树形选择器配置
+const treeSelectProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children'
+};
 
 // 初始化数据
 let rowId = 1;
@@ -255,6 +294,23 @@ const groupedQuestions = computed(() => {
   return groups;
 });
 
+// 计算已答题数 - 修复了单选题选择选项A的问题
+const answeredCount = computed(() => {
+  return allQuestions.value.filter(question => {
+    const answer = userAnswers.value[question.id];
+    
+    if (question.questionType === 2) { // 多选题
+      return answer && answer.length > 0;
+    } else if (question.questionType === 3) { // 判断题
+      return answer === true || answer === false;
+    } else if (question.questionType === 1) { // 单选题
+      return typeof answer === 'number' && answer >= 0;
+    } else { // 其他题型（填空/简答/编程）
+      return answer && answer.toString().trim() !== '';
+    }
+  }).length;
+});
+
 // 更新当前时间
 const updateTime = () => {
   const now = new Date();
@@ -274,7 +330,27 @@ const loadCategoryAndTags = async () => {
   try {
     // 加载类目树
     const categoryRes = await listCategory({});
-    categoryOptions.value = categoryRes.data || [];
+    let categories = categoryRes.data || [];
+    console.log('类目原始数据:', categories); // 添加调试日志
+    // 构建树形结构，兼容多种顶级类目标识
+    const buildTree = (data, parentId = null) => {
+      return data
+        .filter(item => {
+          // 处理多种可能的顶级类目标识
+          const isTopLevel = [null, undefined, 0, -1, '0', '-1', ''].includes(item.parentId);
+          if (parentId === null) {
+            return isTopLevel;
+          }
+          // 转换为相同类型比较
+          return Number(item.parentId) === Number(parentId);
+        })
+        .map(item => ({
+          ...item,
+          children: buildTree(data, item.id) || [] // 确保children始终是数组
+        }));
+    };
+    categoryOptions.value = buildTree(categories);
+    console.log('构建后的类目树:', categoryOptions.value); // 添加调试日志
     
     // 加载标签列表
     const tagRes = await listTag({});
@@ -285,8 +361,21 @@ const loadCategoryAndTags = async () => {
   }
 };
 
-// 添加类目行
+// 添加类目行（添加重复校验）
 const addCategoryRow = () => {
+  // 检查是否有重复条件
+  const hasDuplicate = categoryRows.value.some(row => {
+    return categoryRows.value.some(otherRow => {
+      if (row.id === otherRow.id) return false; // 不与自己比较
+      return row.categoryId === otherRow.categoryId && row.tagId === otherRow.tagId;
+    });
+  });
+  
+  if (hasDuplicate) {
+    ElMessage.warning('已有相同的类目和标签组合，请勿重复添加');
+    return;
+  }
+  
   categoryRows.value.push({
     id: rowId++,
     categoryId: null,
@@ -295,37 +384,37 @@ const addCategoryRow = () => {
   });
 };
 
-// 处理选择变化
-const handleSelectionChange = (selectedRows) => {
-  selectedRowKeys.value = selectedRows.map(row => row.id);
-};
-
 // 删除行
 const deleteRow = (id) => {
   categoryRows.value = categoryRows.value.filter(row => row.id !== id);
-  selectedRowKeys.value = selectedRowKeys.value.filter(key => key !== id);
 };
 
-// 删除选中行
-const deleteSelectedRows = () => {
-  ElMessageBox.confirm(
-    '确定要删除选中的筛选条件吗？',
-    '确认删除',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+// 校验数量总和（不超过100）
+const validateTotalQuantity = () => {
+  const total = categoryRows.value.reduce((sum, row) => {
+    return sum + (row.quantity || 0);
+  }, 0);
+  
+  if (total > 100) {
+    ElMessage.error(`题目总数不能超过100题，当前总数为: ${total}`);
+    return false;
+  }
+  
+  return true;
+};
+
+// 校验单个数量输入
+const validateQuantity = () => {
+  if (!validateTotalQuantity()) {
+    // 如果超过100，将最后一个修改的数量重置为1
+    const lastIndex = categoryRows.value.length - 1;
+    if (lastIndex >= 0) {
+      categoryRows.value[lastIndex].quantity = 1;
     }
-  ).then(() => {
-    categoryRows.value = categoryRows.value.filter(
-      row => !selectedRowKeys.value.includes(row.id)
-    );
-    selectedRowKeys.value = [];
-    ElMessage.success('删除成功');
-  }).catch(() => {});
+  }
 };
 
-// 获取题目数据
+// 获取题目数据（添加数量总和校验）
 const fetchQuestions = async () => {
   if (categoryRows.value.length === 0) {
     ElMessage.warning('请添加至少一个筛选条件');
@@ -343,9 +432,15 @@ const fetchQuestions = async () => {
       return;
     }
   }
+  
+  // 校验数量总和
+  if (!validateTotalQuantity()) {
+    return;
+  }
 
   loading.value = true;
   allQuestions.value = [];
+  userAnswers.value = {};
 
   try {
     for (const row of categoryRows.value) {
@@ -373,6 +468,15 @@ const fetchQuestions = async () => {
       for (const question of selectedQuestions) {
         const questionId = question.id;
         
+        // 根据题型初始化答案
+        if (question.questionType === 1 || question.questionType === 3) {
+          userAnswers.value[questionId] = null; // 单选和判断初始为null
+        } else if (question.questionType === 2) {
+          userAnswers.value[questionId] = []; // 多选初始为数组
+        } else {
+          userAnswers.value[questionId] = ''; // 其他题型初始为空字符串
+        }
+
         // 获取选项（单选/多选/判断）
         if ([1, 2, 3].includes(question.questionType)) {
           const optionRes = await getOptionByQuestionId(questionId);
@@ -411,10 +515,41 @@ const getCategoryName = (categoryId) => {
   return findCategory(categoryOptions.value, categoryId) || '未知类目';
 };
 
-// 保存到个人题库
+// 单选题选择答案
+const selectSingleOption = (questionId, optIndex) => {
+  userAnswers.value[questionId] = optIndex;
+};
+
+// 多选题切换选项
+const toggleMultipleOption = (questionId, optIndex) => {
+  if (!userAnswers.value[questionId]) {
+    userAnswers.value[questionId] = [];
+  }
+  
+  const index = userAnswers.value[questionId].indexOf(optIndex);
+  if (index > -1) {
+    userAnswers.value[questionId].splice(index, 1);
+  } else {
+    userAnswers.value[questionId].push(optIndex);
+    userAnswers.value[questionId].sort((a, b) => a - b);
+  }
+};
+
+// 判断题设置答案
+const setJudgeAnswer = (questionId, isCorrect) => {
+  userAnswers.value[questionId] = isCorrect;
+};
+
+// 保存到个人题库（添加校验）
 const saveToPersonalBank = () => {
   if (allQuestions.value.length === 0) {
     ElMessage.warning('请先加载题目');
+    return;
+  }
+  
+  // 检查是否所有题目都已完成
+  if (answeredCount.value < allQuestions.value.length) {
+    ElMessage.warning('请完成所有题目后再保存');
     return;
   }
   
@@ -430,7 +565,7 @@ const saveToPersonalBank = () => {
     }
   ).then(() => {
     // 这里将实现保存逻辑
-    console.log('保存题目到个人题库', allQuestions.value);
+    console.log('保存题目到个人题库', allQuestions.value, userAnswers.value);
     ElMessage.success('题目已保存到个人题库');
   }).catch(() => {});
 };
@@ -524,7 +659,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 样式保持不变 */
 .exam-container {
   padding: 20px;
   background-color: #f5f7fa;
@@ -532,20 +666,9 @@ onUnmounted(() => {
 }
 
 .exam-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
   padding: 15px 20px;
-  background: linear-gradient(to right, #409eff, #1a73e8);
-  color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
+  color: #1f2329;
 }
 
 .category-search-area {
@@ -561,6 +684,12 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .search-table {
@@ -689,9 +818,15 @@ onUnmounted(() => {
   align-items: flex-start;
   padding: 12px 15px;
   border-radius: 6px;
+  cursor: pointer;
   transition: all 0.2s;
   border: 1px solid #dcdfe6;
   background-color: #fafbfc;
+}
+
+.option-item:hover {
+  background-color: #f0f7ff;
+  border-color: #c6e2ff;
 }
 
 .option-letter {
@@ -705,11 +840,28 @@ onUnmounted(() => {
   flex: 1;
 }
 
+.selected-option {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+  box-shadow: inset 0 0 0 1px #91d5ff;
+}
+
 .judge-options {
   display: flex;
   gap: 20px;
   margin-left: 20px;
   margin-bottom: 15px;
+}
+
+.answer-input-area {
+  margin-top: 10px;
+}
+
+.code-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #909399;
+  text-align: right;
 }
 
 .stats-bar {
@@ -729,21 +881,15 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  .exam-header {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .header-actions {
-    width: 100%;
-    justify-content: center;
-  }
-  
   .search-header {
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
   }
   
   .questions-header {
@@ -761,5 +907,22 @@ onUnmounted(() => {
   .question-count {
     justify-content: center;
   }
+}
+
+/* 树形选择器样式 - 加粗父节点 */
+:deep(.category-tree-select) .el-tree-node__content .el-tree-node__label {
+  font-weight: normal;
+}
+
+:deep(.category-tree-select) .el-tree-node.is-disabled > .el-tree-node__content .el-tree-node__label {
+  font-weight: bold !important;
+  color: #1f2329 !important;
+}
+
+:deep(.category-tree-select) .el-tree-node.is-disabled {
+  cursor: not-allowed;
+}
+.parent-node {
+  font-weight: bold;
 }
 </style>

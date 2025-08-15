@@ -71,6 +71,12 @@ const routes = [
     component: () => import('../views/Home.vue')
   },
   {
+    path: '/upload',
+    name: 'Upload',
+    component: () => import('../views/updatedown/up.vue')
+  },
+
+  {
     path: '/profile',
     name: 'PersonalCenter',
     component: PersonalCenter,
