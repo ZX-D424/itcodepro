@@ -20,19 +20,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime"    column="create_time"    />
         <result property="modifier"    column="modifier"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="appendix"    column="appendix"    />
     </resultMap>
 
     <sql id="selectProjectInterviewSimulationVo">
-        select s.id, s.user_id, s.phone, s.interviewer_id, m.nick_name as nickName, s.interview_type, s.interview_status, s.appointment_time,
-               s.complete_time, s.payment_status, s.interview_result, s.creator, s.create_time, s.modifier, s.update_time
+        select s.id, s.user_id, u.user_name as userName, s.phone, s.interviewer_id, m.nick_name as nickName, s.interview_type, s.interview_status, s.appointment_time,
+               s.complete_time, s.payment_status, s.interview_result, s.creator, s.create_time, s.modifier, s.update_time,s.appendix
         from project_interview_simulation s
         left join project_member m on s.interviewer_id = m.id
+        left join sys_user u on u.user_id = s.user_id
     </sql>
 
     <select id="selectProjectInterviewSimulationList" parameterType="ProjectInterviewSimulation" resultMap="ProjectInterviewSimulationResult">
         <include refid="selectProjectInterviewSimulationVo"/>
         <where>  
-            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="userId != null "> and s.user_id = #{userId}</if>
             <if test="interviewerId != null "> and interviewer_id = #{interviewerId}</if>
         </where>
     </select>
@@ -58,6 +60,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time,</if>
             <if test="modifier != null">modifier,</if>
             <if test="updateTime != null">update_time,</if>
+            <if test="appendix != null">appendix,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
@@ -73,6 +76,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">#{createTime},</if>
             <if test="modifier != null">#{modifier},</if>
             <if test="updateTime != null">#{updateTime},</if>
+            <if test="appendix != null">#{appendix},</if>
          </trim>
     </insert>
 
@@ -92,6 +96,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="modifier != null">modifier = #{modifier},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="appendix != null">appendix = #{appendix},</if>
         </trim>
         where s.id = #{id}
     </update>

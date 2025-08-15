@@ -60,19 +60,18 @@
     <el-table v-loading="loading" :data="rankList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="模块ID" align="center" prop="moduleId" />
-      <el-table-column label="名次" align="center" prop="place" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建人" align="center" prop="createBy" />
-      <el-table-column label="修改人" align="center" prop="updateBy" />
+      <el-table-column label="模块名称" align="center" prop="moduleName" />
+      <el-table-column label="用户账号" align="center" prop="userName" />
+      <el-table-column label="得分" align="center" prop="score" />
       <el-table-column label="评分时间" align="center" prop="scoreTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.scoreTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建人" align="center" prop="createBy" />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">

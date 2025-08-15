@@ -1,6 +1,8 @@
 package com.ruoyi.project.domain;
 
 import java.math.BigDecimal;
+
+import lombok.Data;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -12,6 +14,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * @author qiuqiuzi
  * @date 2025-08-12
  */
+@Data
 public class ProjectCertificateApplication extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
@@ -30,6 +33,7 @@ public class ProjectCertificateApplication extends BaseEntity
     /** 用户ID */
     @Excel(name = "用户ID")
     private Long userId;
+    private String userName;
 
     /** 联系电话 */
     @Excel(name = "联系电话")
@@ -50,6 +54,7 @@ public class ProjectCertificateApplication extends BaseEntity
     /** 支付状态：0-未支付，1-已支付，2-退款中，3-已退款 */
     @Excel(name = "支付状态：0-未支付，1-已支付，2-退款中，3-已退款")
     private Long payStatus;
+    private Long applicationStatus;
 
     public void setId(Long id) 
     {

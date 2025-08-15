@@ -25,6 +25,7 @@ public class ProjectScoreRank extends BaseEntity
     /** 模块ID */
     @Excel(name = "模块ID")
     private Long moduleId;
+    private String moduleName;
 
     /** 名次 */
     @Excel(name = "名次")
@@ -36,6 +37,7 @@ public class ProjectScoreRank extends BaseEntity
     @Excel(name = "用户ID")
     private Long userId;
     private String nickName;
+    private String userName;
 
     /** 用户ID */
     @Excel(name = "模块得分")

@@ -56,8 +56,8 @@
             <h3> {{item.name}}</h3>
             <p v-html="item.description"></p>
             <p>
-              <a v-if="item.type===1" @click="toLevelLink(item.id,item.name,'/projectRealCombat')">去实战</a>
-              <a v-if="item.type===2" @click="toLevelLink(item.id,item.name,'/projectLevel')">去闯关</a>
+              <a v-if="item.type===1" @click="toLevelLink(item.id,item.name,item.menuName,'/projectRealCombat')">去实战</a>
+              <a v-if="item.type===2" @click="toLevelLink(item.id,item.name,item.menuName,'/projectLevel')">去闯关</a>
               <a v-if="item.type===3" @click="proxy.$modal.msgError('建设中')">去学习</a>
             </p>
           </div>
@@ -116,6 +116,8 @@ const { proxy } = getCurrentInstance()
 function initMenuDataList() {
   getMenuDataList().then(response => {
     menuDataList.value = response.data;
+    console.log("!!!!!!!!!!!!")
+    console.log(response.data)
     if(menuIdParam > 0){
       initModule(menuIdParam,menuNameParam,menuIndexParam)
     }else{
@@ -157,10 +159,10 @@ async function toModule(routerName) {
   window.open(url, '_blank');
 }
 
-function toLevelLink(id, name, path) {
+function toLevelLink(id, name,menuName, path) {
   router.push({
     path: path,
-    query: {id: id,   name: name,index:activeIndex.value}
+    query: {id: id, name: name,menuName:menuName,index:activeIndex.value}
   });
 }
 //
@@ -169,6 +171,8 @@ function initModule(menuId, name,index) {
   activeIndex.value = index;
   getModuleDataListByMenuId(menuId).then(response => {
     moduleDataList.value = response.data;
+    console.log("@@@@@@@@@")
+    console.log(response.data)
   });
 }
 

@@ -21,7 +21,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectProjectModuleVo">
-        select * from project_module
+        select m.*,
+               mu.name as menuName
+        from project_module m
+        left join project_menu mu on m.menu_id = mu.id
     </sql>
 
     <select id="selectProjectModuleList" parameterType="ProjectModule" resultMap="ProjectModuleResult">

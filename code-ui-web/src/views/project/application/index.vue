@@ -70,7 +70,7 @@
       <el-table-column label="ID" align="center" prop="id" />
       <el-table-column label="申请人" align="center" prop="applicant" />
       <el-table-column label="身份证号码" align="center" prop="idCard" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="用户账号" align="center" prop="userName" />
       <el-table-column label="联系电话" align="center" prop="phone" />
       <el-table-column label="收件地址" align="center" prop="receiveAddr" />
       <el-table-column label="证书类型" align="center" prop="certType">
@@ -78,19 +78,23 @@
           <dict-tag :options="project_certificate_type" :value="scope.row.certType"/>
         </template>
       </el-table-column>
-      <el-table-column label="备注信息" align="center" prop="remark" />
-      <el-table-column label="证书价格" align="center" prop="certPrice" />
+      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="支付状态" align="center" prop="payStatus">
         <template #default="scope">
           <dict-tag :options="sys_pay_status" :value="scope.row.payStatus"/>
         </template>
       </el-table-column>
-<!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
-<!--        <template #default="scope">-->
-<!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['project:application:edit']">修改</el-button>-->
-<!--          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['project:application:remove']">删除</el-button>-->
-<!--        </template>-->
-<!--      </el-table-column>-->
+      <el-table-column label="申请状态" align="center" prop="applicationStatus">
+        <template #default="scope">
+          <dict-tag :options="project_application_status" :value="scope.row.applicationStatus"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['project:application:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['project:application:remove']">删除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     
     <pagination
@@ -144,6 +148,15 @@
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="申请状态" prop="applicationStatus">
+          <el-radio-group v-model="form.applicationStatus">
+            <el-radio
+                    v-for="dict in project_application_status"
+                    :key="dict.value"
+                    :label="parseInt(dict.value)"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -159,7 +172,7 @@
 import { listApplication, getApplication, delApplication, addApplication, updateApplication } from "@/api/project/application"
 
 const { proxy } = getCurrentInstance()
-const { sys_pay_status, project_certificate_type } = proxy.useDict('sys_pay_status', 'project_certificate_type')
+const { sys_pay_status, project_certificate_type,project_application_status } = proxy.useDict('sys_pay_status', 'project_certificate_type','project_application_status')
 
 const applicationList = ref([])
 const open = ref(false)
