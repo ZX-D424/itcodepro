@@ -12,6 +12,9 @@
         <li v-for="(item, index) in dynamicNavItems" :key="index" :class="{ active: isActive(item.link), hover: isHover(item.link) }" @mouseover="hover(item.link)" @mouseout="unhover(item.link)" @click="active(item.link); router.push(item.link)">
           <a>{{ item.name }}</a>
         </li>
+        <li :class="{ active: isActive('upload'), hover: isHover('upload') }" @mouseover="hover('upload')" @mouseout="unhover('upload')" @click="active('upload'); router.push('/upload')">
+          <a>题库上传</a>
+        </li>
         <!-- 固定的个人中心 -->
         <li :class="{ active: isActive('profile'), hover: isHover('profile') }" @mouseover="hover('profile')" @mouseout="unhover('profile')" @click="active('profile'); router.push('/profile')">
           <a>个人中心</a>

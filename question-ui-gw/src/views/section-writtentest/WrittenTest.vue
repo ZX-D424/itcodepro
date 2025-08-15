@@ -3,31 +3,30 @@
     <!-- 页面标题和操作区 -->
     <div class="exam-header">
       <h2>笔试题目组卷</h2>
-      <div class="header-actions">
-        <el-button type="primary" @click="generatePDF">
-          <el-icon><Document /></el-icon> 生成PDF
-        </el-button>
-        <el-button type="success" @click="saveToMyQuestionBank">
-          <el-icon><FolderSaved /></el-icon> 生成（保存到个人题库）
-        </el-button>
-      </div>
     </div>
 
     <!-- 类目搜索区域 -->
     <div class="category-search-area">
       <div class="search-header">
         <h3>题目筛选条件</h3>
-        <el-button type="primary" size="small" @click="addCategoryRow">
-          <el-icon><Plus /></el-icon> 增加类目
-        </el-button>
-        <el-button 
-          type="danger" 
-          size="small" 
-          @click="deleteSelectedRows" 
-          :disabled="selectedRowKeys.length === 0"
-        >
-          <el-icon><Delete /></el-icon> 删除所选
-        </el-button>
+        <div class="action-buttons">
+          <el-button type="primary" size="small" @click="addCategoryRow">
+            <el-icon><Plus /></el-icon> 增加类目
+          </el-button>
+          <el-button 
+            type="primary" 
+            size="large" 
+            @click="fetchQuestions"
+          >
+            <el-icon><Refresh /></el-icon> 刷新题目
+          </el-button>
+          <el-button type="primary" @click="saveToPersonalBank">
+            <el-icon><Check /></el-icon> 生成
+          </el-button>
+          <el-button type="success" @click="generatePDF">
+            <el-icon><Document /></el-icon> 导出试卷
+          </el-button>
+        </div>
       </div>
 
       <!-- 搜索条件行 -->
@@ -35,22 +34,23 @@
         :data="categoryRows"
         border
         :row-key="(row) => row.id"
-        :selected-row-keys="selectedRowKeys"
-        @selection-change="handleSelectionChange"
         class="search-table"
       >
-        <el-table-column type="selection" width="55" />
         <el-table-column label="类目" prop="categoryId" width="200">
           <template #default="scope">
             <el-tree-select
               v-model="scope.row.categoryId"
               :data="categoryOptions"
-              :props="{ value: 'id', label: 'name', children: 'children' }"
+              :props="treeSelectProps"
               value-key="id"
               placeholder="请选择类目"
-              check-strictly
               style="width: 100%"
-            />
+              class="category-tree-select"
+            >
+              <template #default="{ data }">
+                <span :class="{ 'parent-node': data.children && data.children.length > 0 }">{{ data.name }}</span>
+              </template>
+            </el-tree-select>
           </template>
         </el-table-column>
         <el-table-column label="标签" prop="tagId" width="180">
@@ -65,18 +65,6 @@
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="题型" prop="questionType" width="150">
-          <template #default="scope">
-            <el-select v-model="scope.row.questionType" placeholder="请选择题型" clearable style="width: 100%">
-              <el-option
-                v-for="type in questionTypes"
-                :key="type.value"
-                :label="type.label"
-                :value="type.value"
-              />
-            </el-select>
-          </template>
-        </el-table-column>
         <el-table-column label="数量" prop="quantity" width="120">
           <template #default="scope">
             <el-input 
@@ -85,6 +73,7 @@
               min="1" 
               placeholder="输入数量"
               style="width: 100%"
+              @change="validateQuantity"
             />
           </template>
         </el-table-column>
@@ -106,20 +95,16 @@
     <!-- 题目展示区域 -->
     <div class="questions-area">
       <div class="questions-header">
-        <h3>题目预览</h3>
-        <el-button 
-          type="primary" 
-          size="small" 
-          @click="fetchQuestions"
-        >
-          <el-icon><Refresh /></el-icon> 刷新题目
-        </el-button>
+        <h3>笔试题目</h3>
+        <el-tag type="info">共 {{ allQuestions.length }} 题</el-tag>
       </div>
 
       <el-card v-if="loading" class="loading-card">
         <div class="loading-container">
-          <el-loading spinning size="large" />
-          <p>正在加载题目...</p>
+          <el-icon class="is-loading" color="#409eff" size="48">
+            <Loading />
+          </el-icon>
+          <p style="margin-top: 15px; font-size: 16px; color: #606266;">正在加载题目，请稍候...</p>
         </div>
       </el-card>
 
@@ -147,89 +132,122 @@
               
               <div class="question-content" v-html="question.content"></div>
               
-              <!-- 不同题型的特有内容 -->
-              <div v-if="type === 1" class="question-options">
+              <!-- 不同题型的特有内容和答题区域 -->
+              
+              <!-- 单选题 -->
+              <div v-if="type == 1" class="question-options">
                 <div 
                   v-for="(option, optIndex) in question.options" 
                   :key="option.id" 
                   class="option-item"
+                  @click="selectSingleOption(question.id, optIndex)"
+                  :class="{ 'selected-option': userAnswers[question.id] === optIndex }"
                 >
                   <span class="option-letter">{{ String.fromCharCode(65 + optIndex) }}.</span>
                   <span class="option-content">{{ option.optionContent }}</span>
                 </div>
               </div>
               
-              <div v-if="type === 2" class="question-options">
+              <!-- 多选题 -->
+              <div v-if="type == 2" class="question-options">
                 <div 
                   v-for="(option, optIndex) in question.options" 
                   :key="option.id" 
                   class="option-item"
+                  @click="toggleMultipleOption(question.id, optIndex)"
+                  :class="{ 'selected-option': userAnswers[question.id]?.includes(optIndex) }"
                 >
                   <span class="option-letter">{{ String.fromCharCode(65 + optIndex) }}.</span>
                   <span class="option-content">{{ option.optionContent }}</span>
                 </div>
               </div>
               
-              <div v-if="type === 3" class="judge-options">
-                <div class="option-item">
+              <!-- 判断题 -->
+              <div v-if="type == 3" class="judge-options">
+                <div 
+                  class="option-item"
+                  @click="setJudgeAnswer(question.id, true)"
+                  :class="{ 'selected-option': userAnswers[question.id] === true }"
+                >
                   <span class="option-letter">A.</span>
                   <span class="option-content">正确</span>
                 </div>
-                <div class="option-item">
+                <div 
+                  class="option-item"
+                  @click="setJudgeAnswer(question.id, false)"
+                  :class="{ 'selected-option': userAnswers[question.id] === false }"
+                >
                   <span class="option-letter">B.</span>
                   <span class="option-content">错误</span>
                 </div>
               </div>
               
-              <!-- 答案区域（生成PDF时会包含） -->
-              <div class="question-answer" ref="answerRefs">
-                <el-divider content-position="left">答案</el-divider>
-                <div v-if="type === 1 || type === 2" class="answer-content">
-                  正确答案: 
-                  <span v-for="(option, idx) in question.correctOptions" :key="idx">
-                    {{ String.fromCharCode(65 + option.optionIndex) }} {{ idx < question.correctOptions.length - 1 ? ',' : '' }}
-                  </span>
-                </div>
-                <div v-if="type === 3" class="answer-content">
-                  {{ question.answerContent || '无标准答案' }}
-                </div>
-                <div v-if="type === 4" class="answer-content">
-                  <pre>{{ question.answerContent || '无标准答案' }}</pre>
-                </div>
-                <div v-if="type === 5" class="answer-content">
-                  正确答案: {{ question.correctAnswer ? '正确' : '错误' }}
-                </div>
-                <div v-if="type === 6" class="answer-content">
-                  <pre>{{ question.answerContent || '无标准答案' }}</pre>
-                </div>
+              <!-- 填空题 -->
+              <div v-if="type == 4" class="answer-input-area">
+                <el-input 
+                  v-model="userAnswers[question.id]" 
+                  placeholder="请输入答案" 
+                  clearable
+                />
+              </div>
+              
+              <!-- 简答题 -->
+              <div v-if="type == 5" class="answer-input-area">
+                <el-input 
+                  v-model="userAnswers[question.id]" 
+                  type="textarea" 
+                  :rows="4" 
+                  placeholder="请输入答案" 
+                  clearable
+                />
+              </div>
+              
+              <!-- 编程题 -->
+              <div v-if="type == 6" class="answer-input-area">
+                <el-input 
+                  v-model="userAnswers[question.id]" 
+                  type="textarea" 
+                  :rows="8" 
+                  placeholder="请输入代码" 
+                  clearable
+                  monospace
+                />
+                <p class="code-hint">提示：可使用Tab键缩进代码</p>
               </div>
             </el-card>
           </div>
         </div>
       </div>
     </div>
+    
+    <!-- 底部统计栏 -->
+    <div class="stats-bar">
+      <div class="question-count">
+        <span>总题数: {{ allQuestions.length }}</span>
+        <span>已答题: {{ answeredCount }}</span>
+      </div>
+      <div>当前时间: {{ currentTime }}</div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { listCategory } from '@/api/category/category';
 import { listManage } from '@/api/manage/manage';
 import { getOptionByQuestionId } from '@/api/option/option';
-import { listAnswer } from '@/api/answer/answer';
-import { listTag } from '@/api/tag/tag'; // 假设存在标签相关接口
+import { listTag } from '@/api/tag/tag';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Delete, Refresh,Document } from '@element-plus/icons-vue';
-// import { FolderSaved } from '@element-plus/icons-vue';
-import html2pdf from 'html2pdf.js'; // 需要安装：npm install html2pdf.js
+import { Plus, Delete, Refresh, Document, Check, Loading } from '@element-plus/icons-vue';
+import html2pdf from 'html2pdf.js';
 
 // 题型定义
 const questionTypes = [
   { value: 1, label: '单选题' },
   { value: 2, label: '多选题' },
-  { value: 3, label: '填空题' },
-  { value: 4, label: '简答题' },
-  { value: 5, label: '判断题' },
+  { value: 3, label: '判断题' },
+  { value: 4, label: '填空题' },
+  { value: 5, label: '简答题' },
   { value: 6, label: '编程题' }
 ];
 
@@ -237,17 +255,29 @@ const questionTypes = [
 const categoryOptions = ref([]);
 const tagNameList = ref([]);
 const categoryRows = ref([]);
-const selectedRowKeys = ref([]);
 const loading = ref(false);
 const allQuestions = ref([]);
-const answerRefs = ref([]);
+const userAnswers = ref({});
+const timer = ref(null);
+const currentTime = ref('');
+
+// 树形选择器配置
+const treeSelectProps = {
+  value: 'categoryId',
+  label: 'categoryName',
+  children: 'children'
+};
 
 // 初始化数据
 let rowId = 1;
 
 // 获取题型名称
 const getQuestionTypeName = (typeValue) => {
-  const type = questionTypes.find(t => t.value === typeValue);
+  const typeNum = Number(typeValue); 
+  if (isNaN(typeNum)) {
+    return '未知题型';
+  }
+  const type = questionTypes.find(t => t.value === typeNum);
   return type ? type.label : '未知题型';
 };
 
@@ -255,20 +285,72 @@ const getQuestionTypeName = (typeValue) => {
 const groupedQuestions = computed(() => {
   const groups = {};
   allQuestions.value.forEach(question => {
-    if (!groups[question.questionType]) {
-      groups[question.questionType] = [];
+    const type = question.questionType;
+    if (!groups[type]) {
+      groups[type] = [];
     }
-    groups[question.questionType].push(question);
+    groups[type].push(question);
   });
   return groups;
 });
+
+// 计算已答题数 - 修复了单选题选择选项A的问题
+const answeredCount = computed(() => {
+  return allQuestions.value.filter(question => {
+    const answer = userAnswers.value[question.id];
+    
+    if (question.questionType === 2) { // 多选题
+      return answer && answer.length > 0;
+    } else if (question.questionType === 3) { // 判断题
+      return answer === true || answer === false;
+    } else if (question.questionType === 1) { // 单选题
+      return typeof answer === 'number' && answer >= 0;
+    } else { // 其他题型（填空/简答/编程）
+      return answer && answer.toString().trim() !== '';
+    }
+  }).length;
+});
+
+// 更新当前时间
+const updateTime = () => {
+  const now = new Date();
+  currentTime.value = now.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+};
 
 // 加载类目和标签数据
 const loadCategoryAndTags = async () => {
   try {
     // 加载类目树
     const categoryRes = await listCategory({});
-    categoryOptions.value = categoryRes.data || [];
+    let categories = categoryRes.data || [];
+    console.log('类目原始数据:', categories); // 添加调试日志
+    // 构建树形结构，兼容多种顶级类目标识
+    const buildTree = (data, parentId = null) => {
+      return data
+        .filter(item => {
+          // 处理多种可能的顶级类目标识
+          const isTopLevel = [null, undefined, 0, -1, '0', '-1', ''].includes(item.parentId);
+          if (parentId === null) {
+            return isTopLevel;
+          }
+          // 转换为相同类型比较
+          return Number(item.parentId) === Number(parentId);
+        })
+        .map(item => ({
+          ...item,
+          children: buildTree(data, item.id) || [] // 确保children始终是数组
+        }));
+    };
+    categoryOptions.value = buildTree(categories);
+    console.log('构建后的类目树:', categoryOptions.value); // 添加调试日志
     
     // 加载标签列表
     const tagRes = await listTag({});
@@ -279,79 +361,102 @@ const loadCategoryAndTags = async () => {
   }
 };
 
-// 添加类目行
+// 添加类目行（添加重复校验）
 const addCategoryRow = () => {
+  // 检查是否有重复条件
+  const hasDuplicate = categoryRows.value.some(row => {
+    return categoryRows.value.some(otherRow => {
+      if (row.id === otherRow.id) return false; // 不与自己比较
+      return row.categoryId === otherRow.categoryId && row.tagId === otherRow.tagId;
+    });
+  });
+  
+  if (hasDuplicate) {
+    ElMessage.warning('已有相同的类目和标签组合，请勿重复添加');
+    return;
+  }
+  
   categoryRows.value.push({
     id: rowId++,
     categoryId: null,
     tagId: null,
-    questionType: null,
     quantity: 5 // 默认数量
   });
-};
-
-// 处理选择变化
-const handleSelectionChange = (selectedRows) => {
-  selectedRowKeys.value = selectedRows.map(row => row.id);
 };
 
 // 删除行
 const deleteRow = (id) => {
   categoryRows.value = categoryRows.value.filter(row => row.id !== id);
-  // 如果删除的行在选中列表中，同步更新
-  selectedRowKeys.value = selectedRowKeys.value.filter(key => key !== id);
 };
 
-// 删除选中行
-const deleteSelectedRows = () => {
-  ElMessageBox.confirm(
-    '确定要删除选中的筛选条件吗？',
-    '确认删除',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+// 校验数量总和（不超过100）
+const validateTotalQuantity = () => {
+  const total = categoryRows.value.reduce((sum, row) => {
+    return sum + (row.quantity || 0);
+  }, 0);
+  
+  if (total > 100) {
+    ElMessage.error(`题目总数不能超过100题，当前总数为: ${total}`);
+    return false;
+  }
+  
+  return true;
+};
+
+// 校验单个数量输入
+const validateQuantity = () => {
+  if (!validateTotalQuantity()) {
+    // 如果超过100，将最后一个修改的数量重置为1
+    const lastIndex = categoryRows.value.length - 1;
+    if (lastIndex >= 0) {
+      categoryRows.value[lastIndex].quantity = 1;
     }
-  ).then(() => {
-    categoryRows.value = categoryRows.value.filter(
-      row => !selectedRowKeys.value.includes(row.id)
-    );
-    selectedRowKeys.value = [];
-    ElMessage.success('删除成功');
-  }).catch(() => {
-    // 取消删除
-  });
+  }
 };
 
-// 获取题目数据
+// 获取题目数据（添加数量总和校验）
 const fetchQuestions = async () => {
   if (categoryRows.value.length === 0) {
     ElMessage.warning('请添加至少一个筛选条件');
     return;
   }
 
+  // 验证筛选条件
+  for (const row of categoryRows.value) {
+    if (!row.categoryId) {
+      ElMessage.warning('请选择类目');
+      return;
+    }
+    if (!row.quantity || row.quantity < 1) {
+      ElMessage.warning('请输入有效的题目数量');
+      return;
+    }
+  }
+  
+  // 校验数量总和
+  if (!validateTotalQuantity()) {
+    return;
+  }
+
   loading.value = true;
   allQuestions.value = [];
+  userAnswers.value = {};
 
   try {
-    // 遍历每个筛选条件行，获取对应题目
     for (const row of categoryRows.value) {
-      if (!row.categoryId || !row.questionType || !row.quantity) {
-        ElMessage.warning('请完善筛选条件');
-        loading.value = false;
-        return;
-      }
-
-      // 查询符合条件的题目
       const queryParams = {
         categoryId: row.categoryId,
         tagIds: row.tagId,
-        questionType: Number(row.questionType),
-        pageSize: 1000 // 一次获取足够多的题目
+        pageSize: 1000
       };
 
       const questionRes = await listManage(queryParams);
       let questions = questionRes.rows || [];
+
+      if (questions.length === 0) {
+        ElMessage.warning(`类目 ${getCategoryName(row.categoryId)} 下没有找到符合条件的题目`);
+        continue;
+      }
 
       // 随机排序
       questions = questions.sort(() => Math.random() - 0.5);
@@ -360,84 +465,109 @@ const fetchQuestions = async () => {
       const takeCount = Math.min(row.quantity, questions.length);
       const selectedQuestions = questions.slice(0, takeCount);
 
-      // 为每个题目获取选项和答案
       for (const question of selectedQuestions) {
-         const questionId=question.id;
-
-
-       // ⚠️ 关键：确保 question.questionType 是数字
-      if (typeof question.questionType !== 'number') {
-        console.warn('题型非数字:', question.questionType);
-        continue; // 跳过该题
-      }
-
-
-        // 获取选项
-        if ([1, 2, 3].includes(question.questionType)) {
-          const optionRes = await getOptionByQuestionId(questionId);
-
-          question.options = optionRes.rows
-       .sort((a, b) => Number(a.sort) - Number(b.sort));
-          
-          // 对于选择题和判断题，获取正确答案
-          const answerRes = await listAnswer({questionId});
-          if (answerRes.rows && answerRes.rows.length > 0) {
-            const answer = answerRes.rows[0];
-            question.correctOptions = [];
-            
-            // 解析正确选项编码
-            if (answer.optionCodes) {
-              const correctCodes = answer.optionCodes.split(',');
-              question.correctOptions = question.options
-                .filter(opt => correctCodes.includes(opt.optionCode))
-                .map(opt => ({ ...opt, optionIndex: question.options.findIndex(o => o.id === opt.id) }));
-            }
-            
-            // 判断题特殊处理
-            if (question.questionType === 3) {
-              question.correctAnswer = answer.optionCodes === 'A';
-            }
-          }
-        } 
-        // 获取答案（填空题、简答题、编程题）
-        else if ([4, 5, 6].includes(question.questionType)) {
-          const answerRes = await listAnswer({ questionId: question.id });
-          if (answerRes.rows && answerRes.rows.length > 0) {
-            question.answerContent = answerRes.rows[0].answerContent;
-          }
+        const questionId = question.id;
+        
+        // 根据题型初始化答案
+        if (question.questionType === 1 || question.questionType === 3) {
+          userAnswers.value[questionId] = null; // 单选和判断初始为null
+        } else if (question.questionType === 2) {
+          userAnswers.value[questionId] = []; // 多选初始为数组
+        } else {
+          userAnswers.value[questionId] = ''; // 其他题型初始为空字符串
         }
 
+        // 获取选项（单选/多选/判断）
+        if ([1, 2, 3].includes(question.questionType)) {
+          const optionRes = await getOptionByQuestionId(questionId);
+          question.options = optionRes.rows
+            .sort((a, b) => Number(a.sort) - Number(b.sort));
+        }
         allQuestions.value.push(question);
       }
     }
 
-    ElMessage.success(`共加载 ${allQuestions.value.length} 道题目`);
+    if (allQuestions.value.length > 0) {
+      ElMessage.success(`共加载 ${allQuestions.value.length} 道题目`);
+    } else {
+      ElMessage.warning('未找到符合条件的题目');
+    }
   } catch (error) {
     console.error('获取题目失败:', error);
-    ElMessage.error('获取题目失败');
+    ElMessage.error('获取题目失败，请稍后重试');
   } finally {
     loading.value = false;
   }
 };
 
-// 保存到个人题库（预留功能）
-const saveToMyQuestionBank = () => {
+// 获取类目名称
+const getCategoryName = (categoryId) => {
+  const findCategory = (categories, id) => {
+    for (const category of categories) {
+      if (category.id === id) return category.name;
+      if (category.children) {
+        const found = findCategory(category.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  return findCategory(categoryOptions.value, categoryId) || '未知类目';
+};
+
+// 单选题选择答案
+const selectSingleOption = (questionId, optIndex) => {
+  userAnswers.value[questionId] = optIndex;
+};
+
+// 多选题切换选项
+const toggleMultipleOption = (questionId, optIndex) => {
+  if (!userAnswers.value[questionId]) {
+    userAnswers.value[questionId] = [];
+  }
+  
+  const index = userAnswers.value[questionId].indexOf(optIndex);
+  if (index > -1) {
+    userAnswers.value[questionId].splice(index, 1);
+  } else {
+    userAnswers.value[questionId].push(optIndex);
+    userAnswers.value[questionId].sort((a, b) => a - b);
+  }
+};
+
+// 判断题设置答案
+const setJudgeAnswer = (questionId, isCorrect) => {
+  userAnswers.value[questionId] = isCorrect;
+};
+
+// 保存到个人题库（添加校验）
+const saveToPersonalBank = () => {
   if (allQuestions.value.length === 0) {
     ElMessage.warning('请先加载题目');
     return;
   }
-
-  // 这里只是模拟保存，实际应调用后端接口
-  const saveData = {
-    title: `笔试题库_${new Date().getTime()}`,
-    questionIds: allQuestions.value.map(q => q.id),
-    createTime: new Date()
-  };
-
-  // 预留：保存到个人题库的逻辑
-  console.log('保存到个人题库的数据:', saveData);
   
-  ElMessage.success('已保存到个人题库（模拟）');
+  // 检查是否所有题目都已完成
+  if (answeredCount.value < allQuestions.value.length) {
+    ElMessage.warning('请完成所有题目后再保存');
+    return;
+  }
+  
+  // 这里预留保存到个人题库的功能
+  // 实际实现时会将当前筛选条件保存为个人题库
+  ElMessageBox.confirm(
+    `确定要将 ${allQuestions.value.length} 道题目保存到个人题库吗？`,
+    '保存到个人题库',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info'
+    }
+  ).then(() => {
+    // 这里将实现保存逻辑
+    console.log('保存题目到个人题库', allQuestions.value, userAnswers.value);
+    ElMessage.success('题目已保存到个人题库');
+  }).catch(() => {});
 };
 
 // 生成PDF
@@ -447,19 +577,16 @@ const generatePDF = () => {
     return;
   }
 
-  // 创建一个临时DOM用于生成PDF
   const pdfContainer = document.createElement('div');
   pdfContainer.style.width = '100%';
   pdfContainer.style.padding = '20px';
   
-  // 添加标题
   const titleElement = document.createElement('h1');
-  titleElement.textContent = '笔试题目及答案';
+  titleElement.textContent = '笔试题目';
   titleElement.style.textAlign = 'center';
   titleElement.style.marginBottom = '30px';
   pdfContainer.appendChild(titleElement);
   
-  // 添加题目内容
   Object.entries(groupedQuestions.value).forEach(([type, questions]) => {
     const typeTitle = document.createElement('h2');
     typeTitle.textContent = getQuestionTypeName(Number(type));
@@ -470,21 +597,18 @@ const generatePDF = () => {
       const questionElement = document.createElement('div');
       questionElement.style.margin = '15px 0';
       
-      // 题目序号和标题
       const questionHeader = document.createElement('div');
       questionHeader.style.fontWeight = 'bold';
       questionHeader.style.marginBottom = '10px';
       questionHeader.textContent = `${index + 1}. ${question.title}`;
       questionElement.appendChild(questionHeader);
       
-      // 题目内容
       const contentElement = document.createElement('div');
       contentElement.innerHTML = question.content;
       contentElement.style.marginBottom = '10px';
       questionElement.appendChild(contentElement);
       
-      // 选项（如果有）
-      if ([1, 2, 5].includes(question.questionType) && question.options) {
+      if ([1, 2, 3].includes(question.questionType) && question.options) {
         const optionsContainer = document.createElement('div');
         optionsContainer.style.marginLeft = '20px';
         
@@ -498,40 +622,12 @@ const generatePDF = () => {
         questionElement.appendChild(optionsContainer);
       }
       
-      // 答案
-      const answerContainer = document.createElement('div');
-      answerContainer.style.marginTop = '10px';
-      answerContainer.style.paddingTop = '10px';
-      answerContainer.style.borderTop = '1px dashed #ccc';
-      
-      const answerTitle = document.createElement('div');
-      answerTitle.style.fontWeight = 'bold';
-      answerTitle.textContent = '答案：';
-      answerContainer.appendChild(answerTitle);
-      
-      const answerContent = document.createElement('div');
-      if ([1, 2].includes(question.questionType) && question.correctOptions) {
-        answerContent.textContent = question.correctOptions
-          .map(opt => String.fromCharCode(65 + opt.optionIndex))
-          .join(', ');
-      } else if (question.answerContent) {
-        answerContent.textContent = question.answerContent;
-      } else if (question.questionType === 5) {
-        answerContent.textContent = question.correctAnswer ? '正确' : '错误';
-      } else {
-        answerContent.textContent = '无标准答案';
-      }
-      answerContainer.appendChild(answerContent);
-      
-      questionElement.appendChild(answerContainer);
       pdfContainer.appendChild(questionElement);
     });
   });
   
-  // 添加到body
   document.body.appendChild(pdfContainer);
   
-  // 配置PDF选项
   const opt = {
     margin: 10,
     filename: `笔试题目_${new Date().getTime()}.pdf`,
@@ -540,9 +636,7 @@ const generatePDF = () => {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   
-  // 生成PDF
   html2pdf().from(pdfContainer).set(opt).save().then(() => {
-    // 移除临时元素
     document.body.removeChild(pdfContainer);
   });
 };
@@ -550,8 +644,17 @@ const generatePDF = () => {
 // 初始化
 onMounted(() => {
   loadCategoryAndTags();
-  // 默认添加一行
   addCategoryRow();
+  
+  // 启动时间更新
+  updateTime();
+  timer.value = setInterval(updateTime, 1000);
+});
+
+onUnmounted(() => {
+  if (timer.value) {
+    clearInterval(timer.value);
+  }
 });
 </script>
 
@@ -563,57 +666,59 @@ onMounted(() => {
 }
 
 .exam-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
+  padding: 15px 20px;
+  color: #1f2329;
 }
 
 .category-search-area {
   background-color: #fff;
-  border-radius: 6px;
-  padding: 15px;
+  border-radius: 8px;
+  padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .search-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .search-table {
   width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .questions-area {
   background-color: #fff;
-  border-radius: 6px;
-  padding: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .questions-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ebeef5;
 }
 
 .loading-card {
   text-align: center;
   padding: 50px 0;
+  background: transparent;
+  border: none;
 }
 
 .loading-container {
@@ -626,83 +731,119 @@ onMounted(() => {
 .empty-state {
   padding: 50px 0;
   text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
 }
 
 .questions-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px;
 }
 
 .question-type-group {
-  margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .type-title {
   font-size: 18px;
   color: #1f2329;
-  margin-bottom: 15px;
-  padding-bottom: 5px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
   border-bottom: 2px solid #409eff;
 }
 
 .type-questions {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .question-card {
   transition: all 0.3s;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background-color: #fafbfc;
 }
 
 .question-card:hover {
   border-color: #409eff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .question-header {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .question-number {
   font-weight: bold;
-  margin-right: 5px;
+  margin-right: 8px;
   color: #409eff;
+  font-size: 16px;
+  min-width: 24px;
 }
 
 .question-title {
-  font-weight: bold;
+  font-weight: 600;
   flex: 1;
+  color: #1f2329;
+  font-size: 16px;
 }
 
 .question-content {
-  margin-bottom: 15px;
-  line-height: 1.6;
+  margin-bottom: 20px;
+  line-height: 1.7;
   color: #303133;
+  font-size: 15px;
 }
 
 .question-options {
   margin-left: 20px;
   margin-bottom: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
 }
 
 .option-item {
   display: flex;
   align-items: flex-start;
-  margin: 8px 0;
+  padding: 12px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #dcdfe6;
+  background-color: #fafbfc;
+}
+
+.option-item:hover {
+  background-color: #f0f7ff;
+  border-color: #c6e2ff;
 }
 
 .option-letter {
   font-weight: bold;
-  margin-right: 8px;
-  min-width: 20px;
+  margin-right: 10px;
+  min-width: 22px;
+  color: #409eff;
 }
 
 .option-content {
   flex: 1;
+}
+
+.selected-option {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+  box-shadow: inset 0 0 0 1px #91d5ff;
 }
 
 .judge-options {
@@ -712,21 +853,76 @@ onMounted(() => {
   margin-bottom: 15px;
 }
 
-.question-answer {
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px dashed #e5e7eb;
-}
-
-.answer-content {
+.answer-input-area {
   margin-top: 10px;
-  line-height: 1.6;
 }
 
-.answer-content pre {
-  background-color: #f5f5f5;
-  padding: 10px;
-  border-radius: 4px;
-  overflow-x: auto;
+.code-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #909399;
+  text-align: right;
+}
+
+.stats-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background-color: white;
+  border-top: 1px solid #ebeef5;
+  font-size: 14px;
+  color: #606266;
+  border-radius: 0 0 8px 8px;
+}
+
+.question-count {
+  display: flex;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .search-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .questions-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .stats-bar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .question-count {
+    justify-content: center;
+  }
+}
+
+/* 树形选择器样式 - 加粗父节点 */
+:deep(.category-tree-select) .el-tree-node__content .el-tree-node__label {
+  font-weight: normal;
+}
+
+:deep(.category-tree-select) .el-tree-node.is-disabled > .el-tree-node__content .el-tree-node__label {
+  font-weight: bold !important;
+  color: #1f2329 !important;
+}
+
+:deep(.category-tree-select) .el-tree-node.is-disabled {
+  cursor: not-allowed;
+}
+.parent-node {
+  font-weight: bold;
 }
 </style>
