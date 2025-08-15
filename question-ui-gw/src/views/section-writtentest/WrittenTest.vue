@@ -263,8 +263,8 @@ const currentTime = ref('');
 
 // 树形选择器配置
 const treeSelectProps = {
-  value: 'id',
-  label: 'name',
+  value: 'categoryId',
+  label: 'categoryName',
   children: 'children'
 };
 
