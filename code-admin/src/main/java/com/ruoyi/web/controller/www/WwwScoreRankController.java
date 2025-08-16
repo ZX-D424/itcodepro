@@ -49,8 +49,6 @@ public class WwwScoreRankController extends BaseController
     public AjaxResult getPersonalModuleRank(@PathVariable Long moduleId)
     {
         Long userId = getUserId();
-//        System.out.println(projectScoreRankService.getPersonalRank(userId,moduleId));
-//        System.out.println("@@@@@@@@@@@77777777777@@@@@@@@");
         return success(projectScoreRankService.getPersonalRank(userId,moduleId));
     }
 
@@ -59,8 +57,6 @@ public class WwwScoreRankController extends BaseController
     public AjaxResult getPersonalTotalRank()
     {
         Long userId = getUserId();
-//        System.out.println(projectScoreRankService.getPersonalTotalRank(userId));
-//        System.out.println("@@@@@@@@@@@@@@@@@@@");
         return success(projectScoreRankService.getPersonalTotalRank(userId));
     }
 }

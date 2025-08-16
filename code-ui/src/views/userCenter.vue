@@ -1,14 +1,6 @@
 <template>
     <headerVue></headerVue>
 
-    <!-- 视频容器 -->
-    <div class="video-background">
-        <video autoplay muted loop>
-            <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">
-            您的浏览器不支持视频标签。
-        </video>
-    </div>
-
     <div class="member-container">
         <div class="member-sidebar">
             <h2>全部菜单</h2>
