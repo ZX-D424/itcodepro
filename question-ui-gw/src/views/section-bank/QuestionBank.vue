@@ -1805,6 +1805,8 @@ const getFirstSubCategory = (treeData) => {
 
 
 
+
+
 // 将平铺数据转换为树形结构
 const buildTree = (data) => {
   const map = {};
@@ -1841,6 +1843,8 @@ const getCategoryList = async () => {
     treeCategoryList.value = buildTree(response.data);
     
     categoryTotal.value = response.total || 0;
+
+
   } catch (error) {
     console.error('获取类目列表失败:', error);
   }
@@ -1849,7 +1853,14 @@ if (firstSubCategory) {
   selectedCategoryId.value = firstSubCategory.id;
   selectedCategoryName.value = firstSubCategory.name;
   // 加载对应题目标题
-  getQuestionList();
+ 
+   // 加载完类目后，若路由有categoryId则自动选中
+    if (route.query.categoryId) {
+      selectedCategoryId.value = route.query.categoryId;
+      selectedCategoryName.value = route.query.categoryName || '';
+      getQuestionList();
+    }
+ getQuestionList();
 }
 };
 
@@ -1914,10 +1925,25 @@ const goToDetail = (id) => {
 
 
 
+// 监听路由参数变化
+watch(
+  () => route.query,
+  (query) => {
+    if (query.categoryId) {
+      selectedCategoryId.value = query.categoryId;
+      selectedCategoryName.value = query.categoryName || '';
+      getQuestionList();
+    }
+  },
+  { immediate: true }
+);
+
+
 // 初始化
 onMounted(() => {
   getCategoryList();
-  watch(
+  // 监听路由参数变化
+watch(
   () => route.query,
   (query) => {
     if (query.categoryId) {
