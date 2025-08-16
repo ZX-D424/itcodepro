@@ -10,7 +10,7 @@
 
 
 // 存储token的键名
-const TokenKey = 'Admin-Token';
+const TokenKey = 'Question-2025-08-16-Token';
 
 // 获取token
 export function getToken() {

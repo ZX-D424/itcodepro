@@ -22,6 +22,7 @@ const whiteList = [
   '/projectRealCombat',
   '/userLogin',
   '/userRegister',
+  '/projectRank',
   // '/userCenter'
 ]
 

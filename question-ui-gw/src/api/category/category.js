@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询题库类目列表
 export function listCategory(query) {
   return request({
-    url: '/public/category/category/list',
+    url: '/www/category/category/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listCategory(query) {
 // 查询题库类目列表
 export function listCategoryNameList() {
   return request({
-    url: '/public/category/category/namelist',
+    url: '/www/category/category/namelist',
     method: 'get',
   })
 }
@@ -20,7 +20,7 @@ export function listCategoryNameList() {
 // 查询题库类目详细
 export function getCategory(id) {
   return request({
-    url: '/public/category/category/' + id,
+    url: '/www/category/category/' + id,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function getCategory(id) {
 // 新增题库类目
 export function addCategory(data) {
   return request({
-    url: '/public/category/category',
+    url: '/www/category/category',
     method: 'post',
     data: data
   })
@@ -37,7 +37,7 @@ export function addCategory(data) {
 // 修改题库类目
 export function updateCategory(data) {
   return request({
-    url: '/public/category/category',
+    url: '/www/category/category',
     method: 'put',
     data: data
   })
@@ -46,7 +46,7 @@ export function updateCategory(data) {
 // 删除题库类目
 export function delCategory(id) {
   return request({
-    url: '/public/category/category/' + id,
+    url: '/www/category/category/' + id,
     method: 'delete'
   })
 }
