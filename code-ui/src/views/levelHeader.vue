@@ -43,13 +43,13 @@
     </div>
   </nav>
 
-  <!-- 视频容器 -->
-  <div class="video-background">
-    <video autoplay muted loop>
-      <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">
-      您的浏览器不支持视频标签。
-    </video>
-  </div>
+<!--  &lt;!&ndash; 视频容器 &ndash;&gt;-->
+<!--  <div class="video-background">-->
+<!--    <video autoplay muted loop>-->
+<!--      <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">-->
+<!--      您的浏览器不支持视频标签。-->
+<!--    </video>-->
+<!--  </div>-->
 
   <el-dialog title="用户登录" v-model="open" width="30%" center>
     <login :closeDialog="() => open = false" />

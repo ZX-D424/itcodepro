@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.question.mapper.QuestionManageMapper">
+    
+    <resultMap type="QuestionManage" id="QuestionManageResult">
+        <result property="id"    column="id"    />
+        <result property="categoryId"    column="category_id"    />
+        <result property="tagIds"    column="tag_ids"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="questionType"    column="question_type"    />
+        <result property="sort"    column="sort"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="status"    column="status"    />
+        <result property="source"    column="source"    />
+        <result property="category"    column="category"    />
+        <result property="tag"    column="tag"    />
+    </resultMap>
+
+    <sql id="selectQuestionManageVo">
+        select
+            question_manage.*,
+            question_tag.tag_name as tag,
+            question_category.name as category
+        from question_manage
+                 left join question_tag
+                           on question_manage.tag_ids = question_tag.id
+                    left join question_category
+                           on question_manage.category_id = question_category.id
+    </sql>
+<!--    on FIND_IN_SET(question_tag.id, question_manage.tag_ids) > 0-->
+    <select id="selectQuestionManageList" parameterType="QuestionManage" resultMap="QuestionManageResult">
+        <include refid="selectQuestionManageVo"/>
+        <where>  
+            <if test="categoryId != null  and categoryId != ''"> and category_id = #{categoryId}</if>
+            <if test="tagIds != null  and tagIds != ''"> and tag_ids = #{tagIds}</if>
+            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+            <if test="questionType != null "> and question_type = #{questionType}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="source != null  and source != ''"> and source = #{source}</if>
+        </where>
+    </select>
+    
+    <select id="selectQuestionManageById" parameterType="String" resultMap="QuestionManageResult">
+        <include refid="selectQuestionManageVo"/>
+        where question_manage.id = #{id}
+    </select>
+    <select id="getQuestionNameList" resultType="java.lang.String">
+        select question_manage.title from question_manage
+    </select>
+
+    <insert id="insertQuestionManage" parameterType="QuestionManage" useGeneratedKeys="true" keyProperty="id">
+        insert into question_manage
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="categoryId != null and categoryId != ''">category_id,</if>
+            <if test="tagIds != null and tagIds != ''">tag_ids,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="questionType != null">question_type,</if>
+            <if test="sort != null">sort,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="status != null">status,</if>
+            <if test="source != null">source,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="categoryId != null and categoryId != ''">#{categoryId},</if>
+            <if test="tagIds != null and tagIds != ''">#{tagIds},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="questionType != null">#{questionType},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="status != null">#{status},</if>
+            <if test="source != null">#{source},</if>
+         </trim>
+    </insert>
+
+    <update id="updateQuestionManage" parameterType="QuestionManage">
+        update question_manage
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryId != null and categoryId != ''">category_id = #{categoryId},</if>
+            <if test="tagIds != null and tagIds != ''">tag_ids = #{tagIds},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="questionType != null">question_type = #{questionType},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="source != null">source = #{source},</if>
+        </trim>
+        where question_manage.id = #{id}
+    </update>
+
+    <delete id="deleteQuestionManageById" parameterType="String">
+        delete from question_manage where question_manage.id = #{id}
+    </delete>
+
+    <delete id="deleteQuestionManageByIds" parameterType="String">
+        delete from question_manage where question_manage.id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

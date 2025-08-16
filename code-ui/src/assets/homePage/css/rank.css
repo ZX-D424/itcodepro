@@ -1,0 +1,210 @@
+/* src/assets/homePage/css/rank.css */
+
+.rank{
+    z-index: 10;
+    background-color: rgba(0,0,0,0.1); /* 改为透明 */
+    padding: 10px;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-nav{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.rank-nav-list{
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.8); /* 改为白色背景 */
+    width: 200px;
+    height: 100px;
+    border-radius: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: rgba(0,0,0,0.7);
+}
+.rank-nav-list:hover{
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 5px 5px 5px 6px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+
+.rank-nav-list p{
+    margin-top: 15px;
+}
+
+.rank-list-item{
+    width: 90%;
+    margin: auto;
+    color: rgba(0,0,0,0.7);
+}
+
+.fixclear::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.rank-item-left {
+    float: left;
+    margin-left: 20px;
+    margin-top: 8px;
+    color: rgba(0,0,0,0.7);
+
+}
+
+.rank-item-left .left-aside{
+    width: 420px;
+    height: 100px;
+    margin: 10px;
+    border-radius: 10px;
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.8); /* 白色背景 */
+    color: rgba(0,0,0,0.7);
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.left-aside:hover{
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 5px 5px 5px 6px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+
+.rank-item-left .left-aside img{
+    width: 120px;
+    height: 80px;
+}
+
+.rank-item-left .left-aside p{
+    margin-top: 30px;
+}
+
+.rank-item-right {
+    display: flex;
+    flex-wrap: wrap; /* 已经设置，保持不变 */
+}
+
+.rank-item-right .left-aside-content1{
+    border-radius: 15px;
+    margin-top: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: rgba(0,0,0,0.7);
+    flex: 1 1 380px; /* 允许伸缩，但设置基础宽度 */
+    min-width: 300px; /* 设置最小宽度，防止过度压缩 */
+    margin-left: 10px;
+    margin-right: 20px;
+}
+
+
+
+/* 如果希望在小屏幕上也能正常换行，可以添加媒体查询 */
+@media (max-width: 1200px) {
+    .rank-item-right .left-aside-content1{
+        margin-left: 20px;
+        width: calc(100% - 40px); /* 在小屏幕上占满宽度 */
+        min-width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .rank-item-right {
+        width: 100%;
+    }
+
+    .rank-item-right .left-aside-content1{
+        margin-left: 10px;
+        margin-right: 10px;
+        width: calc(100% - 20px);
+        min-width: 250px;
+    }
+}
+.rank-item-right .left-aside-content1 h3 {
+    text-align: center;
+    height: 60px;
+    line-height: 60px;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-item-right .left-aside-content1 .ranking{
+    width: 100%;
+    text-align: center;
+    margin: auto;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-item-right .left-aside-content1 .ranking table{
+    margin-left: 2.5%;
+}
+
+.rank-item-right .left-aside-content1 .ranking img{
+    width: 20px;
+    height: 20px;
+}
+
+.rank-item-right .left-aside-content1 .ranking .ranking-list td{
+    font-size: 14px;
+    font-weight: bold;
+    height: 50px;
+    line-height: 50px;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-item-right .left-aside-content1 .ranking table tr td{
+    text-align: center;
+    height: 40px;
+    line-height: 40px;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-item-right .left-aside-content2{
+    border-radius: 15px;
+    margin-top: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: rgba(0,0,0,0.7);
+    flex: 1 1 380px; /* 允许伸缩，但设置基础宽度 */
+    min-width: 300px; /* 设置最小宽度，防止过度压缩 */
+    margin-right: 30px;
+}
+
+.rank-item-right .left-aside-content2 h3 {
+    text-align: center;
+    height: 60px;
+    line-height: 60px;
+    color: rgba(0,0,0,0.7);
+}
+.rank-item-right .left-aside-content2 .ranking{
+    width: 100%;
+    text-align: center;
+    margin: auto;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-item-right .left-aside-content2 .ranking table{
+    margin-left: 2.5%;
+}
+
+.rank-item-right .left-aside-content2 .ranking img{
+    width: 20px;
+    height: 20px;
+}
+
+.rank-item-right .left-aside-content2 .ranking .ranking-list td{
+    font-size: 14px;
+    font-weight: bold;
+    height: 50px;
+    line-height: 50px;
+    color: rgba(0,0,0,0.7);
+}
+
+.rank-item-right .left-aside-content2 .ranking table tr td{
+    text-align: center;
+    height: 40px;
+    line-height: 40px;
+    color: rgba(0,0,0,0.7);
+}

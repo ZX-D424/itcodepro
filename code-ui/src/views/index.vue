@@ -38,18 +38,18 @@
     </div>
   </nav>
 
-  <!-- 视频容器 -->
-  <div class="video-background">
-    <video autoplay muted loop>
-      <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">
-      您的浏览器不支持视频标签。
-    </video>
-  </div>
+<!--  &lt;!&ndash; 视频容器 &ndash;&gt;-->
+<!--  <div class="video-background">-->
+<!--    <video autoplay muted loop>-->
+<!--      <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">-->
+<!--      您的浏览器不支持视频标签。-->
+<!--    </video>-->
+<!--  </div>-->
 
 
   <div class="project">
     <section class="section">
-      <h2>{{menuName}} 实战</h2>
+      <h2>{{menuName}} 快速入门</h2>
       <div class="cards">
         <template v-for="item in moduleDataList">
           <div class="card">

@@ -8,10 +8,9 @@
     <div class="flex">
       <div class="card-list">
         <div class="right-aside">
-          <h2> {{moduleName}} </h2>
+          <h2> {{moduleName}} 基础闯关</h2>
           <div class="right-aside-item">
             <ul >
-              <li class="catalog-item-step"></li>
 
               <template v-for="level in levelDataList">
               <li v-if="level.levelType === '1'"   @click="toPassLevel(level.id)">
@@ -33,15 +32,15 @@
                 <div class="left-aside-item">
                   <img class="img-title1" src="https://www.w3cschool.cn/statics/images/codecamp/certificate.png" alt="">
                   <ul>
-                    <li><B>{{certificateName}}认证</B></li>
-                    <li>通关HTML基础闯关且评分>80分，可领取</li>
-                    <li>纪念价值，学习证明、自我学习激励</li>
+                    <li><B>{{certificateName}} 开发者证书</B></li>
+                    <li>通关html、css、js、(react.js/vue3.js)且平均分大于80分，可以申请由我司颁发的证书</li>
+                    <li>凭该证书来我司面试，可以优先考虑聘用。</li>
                   </ul>
                 </div>
               </li>
 
               <li class="flex">
-                <div class="get" title="只展示TOP100位领取人">证书申请榜</div>
+                <span class="get" title="只展示TOP100位领取人">证书申请榜</span>
               </li>
               <li class="get-list">
                   <table  width="95%" align="center">

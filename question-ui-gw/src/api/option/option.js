@@ -6,7 +6,7 @@ import request from '@/utils/request'
 // 根据题目ID获取选项
 export function getOptionByQuestionId(questionId) {
   return request({
-    url: '/public/option/option/list',
+    url: '/www/option/option/list',
     method: 'get',
     params: { questionId }
   });
@@ -16,7 +16,7 @@ export function getOptionByQuestionId(questionId) {
 // 根据题目ID获取答案
 export function getAnswerByQuestionId(questionId) {
   return request({
-    url: '/public/answer/answer/list',
+    url: '/www/answer/answer/list',
     method: 'get',
     params: { questionId }
   });

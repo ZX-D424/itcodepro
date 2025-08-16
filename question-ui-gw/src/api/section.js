@@ -2,7 +2,7 @@ import request from '@/utils/request'; // 确保路径正确
 
 export function listSection(query) {
   return request({
-    url: '/public/section/section/list',
+    url: '/www/section/section/list',
     method: 'get',
     params: query
   });

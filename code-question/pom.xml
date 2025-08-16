@@ -17,17 +17,6 @@
     </properties>
 
     <dependencies>
-        <!-- 核心模块-->
-        <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>code-framework</artifactId>
-        </dependency>
-
-        <!-- 系统模块-->
-        <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>code-system</artifactId>
-        </dependency>
 
         <!-- 通用工具-->
         <dependency>
@@ -35,43 +24,11 @@
             <artifactId>code-common</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
-            <scope>runtime</scope>
-        </dependency>
 
 
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.5.15</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+
 </project>
 
 
