@@ -1,36 +1,33 @@
 /* 定义一个名为 .level 的类，用于设置关卡的样式 */
 .level {
-
-
-
+    background-color: rgba(0,0,0,0.1); /* 改为灰色 */
+    color: rgba(0,0,0,0.6);
     .flex {
         display: flex;
     }
-
-    .flex span:nth-child(1) {
-        margin: auto;
-        color: rgba(121, 121, 121);
-    }
-
     .card-list {
-        width: 100%;
-        margin: auto;
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 90%;
         display: flex;
         justify-content: space-between;
-        background-color: rgba(255, 182, 193,0.3);
     }
 
     .right-aside {
         margin-top: 10px;
-        width: 100%;
+        margin-right: 10px;
+        width: 90%;
+        background-color: white;
+        border-radius: 10px;
         h2 {
-            padding: 5px 23px;
+            margin-top: 10px;
+            padding: 10px;
+            margin-left: 20px;
             background-color: rgba(255, 200, 200,1);
             width: 30%;
-            border-radius: 5px;
-            color: white;
+            border-radius: 10px;
             text-align: center;
-
         }
     }
 
@@ -41,22 +38,10 @@
         /* border: 1px solid black; */
     }
     .left-aside-content{
-        border:1px solid #ccc;
-        border-radius: 15px;
-        width: 90%;
-        margin-right: 20px;
-    }
-
-
-
-    .catalog-item-step{
-        width: 5px;
-        height: 100%;
-        border-left: 5px solid #f4bac5;
-        margin-left: 126px;
-        position: absolute;
-        top: -3px;
-        z-index: -1;
+        border-radius: 9px;
+        width: 100%;
+        background-color: white;
+        margin: auto;
     }
 
     h3 {
@@ -67,11 +52,11 @@
 
     .left-aside-item {
         display: flex;
-        margin-left: 20px;
+        margin:20px;
     }
 
     .img-title1 {
-        height: 100px;
+        height: 130px;
     }
 
     li {
@@ -88,11 +73,9 @@
         width: 100%;
         height: 40px;
         text-align: center;
-        border: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
         line-height: 40px;
-        border-radius: 5px;
         font-size: 20px;
-        margin-top: 35px;
     }
     .get-list{
         text-align: center;
@@ -151,10 +134,10 @@
         margin-left: 150px;
     }
     .left-aside-content1{
-        width: 89%;
-        border:1px solid #ccc;
-        border-radius: 15px;
+        width: 100%;
+        border-radius: 5px;
         margin-top: 15px;
+        background-color: white;
     }
     div{
         display: inline-block;
@@ -163,9 +146,9 @@
         position: relative;
     }
     .right-aside-item ul li div{
-        padding: 5px 26px;
-        border-radius: 15px;
-        color: white;
+        padding: 5px 23px;
+        border-radius: 10px;
+        color: rgba(0,0,0,0.6);
         background-color: rgba(255, 182, 193,0.6);
     }
     .right-aside-item ul li{

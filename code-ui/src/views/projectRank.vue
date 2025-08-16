@@ -2,17 +2,16 @@
 
     <headerVue />
 
-    <!-- Video Background -->
-    <div class="video-background">
-      <video autoplay muted loop>
-        <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">
-        您的浏览器不支持视频标签。
-      </video>
-    </div>
+<!--    &lt;!&ndash; Video Background &ndash;&gt;-->
+<!--    <div class="video-background">-->
+<!--      <video autoplay muted loop>-->
+<!--        <source src="@/assets/homePage/video/HDAHKHFEC8afY2e.mp4" type="video/mp4">-->
+<!--        您的浏览器不支持视频标签。-->
+<!--      </video>-->
+<!--    </div>-->
 
 
   <div class="rank">
-    <h3 class="rank-h3">  个人榜单：</h3>
     <div class="rank-nav">
       <div class="rank-nav-list">
         <img src="../assets/homePage/images/nebulas.png"/>
@@ -123,7 +122,7 @@
           <div class="left-aside" >
             <img src="../assets/homePage/images/nebulas.png"/>
             <p >
-              <b>HTMl</b><br>
+              <b>HTML</b><br>
               排名：<span>1</span><br>
               得分：<span>100</span>
             </p>
@@ -199,7 +198,7 @@
 
 
 
-          <div class="left-aside-content1">
+          <div class="left-aside-content2">
             <h3 title="排行_TOP_100">Web开发者证书申请榜</h3>
             <hr>
             <div class="ranking">

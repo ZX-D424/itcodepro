@@ -4,7 +4,7 @@
     --secondary-color: #0066ff;
     --text-light: #fff;
     --accent-color: #f06595;
-    --shadow-color: rgba(0, 230, 255, 0.3);
+    --shadow-color: rgba(73,109,131,0.9)
 }
 
 * {
@@ -40,6 +40,7 @@ a {
     padding: 15px 50px;
     position: relative;
     z-index: 10;
+    background:rgba(73,109,131,0.9)
 
 }
 .navbar .logo {
@@ -213,95 +214,32 @@ a {
 
 
 
-/*********************中间部分样式********************/
-
-.section {
-    padding: 80px 20px;
-    text-align: center;
-    animation: fadeInUp 1s ease forwards;
-}
-.section:nth-of-type(even) {
-
-}
-.section h2 {
-    font-size: 2.8rem;
-    margin-bottom: 30px;
-    color: var(--primary-color);
-    position: relative;
-    display: inline-block;
-}
-.section h2::after {
-    content: "";
-    width: 50%;
-    height: 4px;
-    background: var(--primary-color);
-    position: absolute;
-    bottom: -10px;
-    left: 25%;
-    border-radius: 2px;
-    animation: fadeInUp 1.5s ease forwards;
-}
-.section p {
-    font-size: 1.1rem;
-    max-width: 1000px;
-    margin: 0 auto 40px;
-    line-height: 1.8;
-    opacity: 0.9;
-}
-.cards {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
-}
-.card {
-    background-color: rgba(255, 182, 193,0.8);
-    border-radius: 10px;
-    padding: 30px 20px;
-    width: 320px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: fadeInUp 1.5s ease forwards;
-}
-.card:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 15px 30px var(--shadow-color);
-}
-.card h3 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: var(--primary-color);
-}
-.card p {
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
 
 
 /*********************视频背景********************/
 
-/* 设置视频容器的样式 */
-.video-background {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    overflow: hidden;
-    z-index: -100;
-}
+/*!* 设置视频容器的样式 *!*/
+/*.video-background {*/
+/*    position: fixed;*/
+/*    top: 0;*/
+/*    right: 0;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    overflow: hidden;*/
+/*    z-index: -100;*/
+/*}*/
 
-/* 设置视频的样式 */
-.video-background video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    transform: translate(-50%, -50%);
-}
+/*!* 设置视频的样式 *!*/
+/*.video-background video {*/
+/*    position: absolute;*/
+/*    top: 50%;*/
+/*    left: 50%;*/
+/*    min-width: 100%;*/
+/*    min-height: 100%;*/
+/*    width: auto;*/
+/*    height: auto;*/
+/*    transform: translate(-50%, -50%);*/
+/*}*/
 
 
 
@@ -312,6 +250,7 @@ footer {
     padding: 50px 20px;
     text-align: center;
     animation: fadeInUp 1s ease forwards;
+    background-color: rgba(73,109,131,0.9)
 }
 footer p {
     margin-bottom: 10px;
