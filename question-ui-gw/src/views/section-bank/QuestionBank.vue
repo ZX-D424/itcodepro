@@ -1750,15 +1750,16 @@ onMounted(() => {
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch,computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { listCategory } from '@/api/category/category';
 import { listManage } from '@/api/manage/manage';
 import { useDict } from '@/utils/dict';
+import { useRoute } from 'vue-router';
 
 // 路由
 const router = useRouter();
-
+const route = useRoute();
 // 字典
 const { sys_question_questiontype, sys_status_question } = useDict('sys_question_questiontype', 'sys_status_question');
 
@@ -1911,9 +1912,22 @@ const goToDetail = (id) => {
   router.push(`/section-bank/questionDetail/${id}`);
 };
 
+
+
 // 初始化
 onMounted(() => {
   getCategoryList();
+  watch(
+  () => route.query,
+  (query) => {
+    if (query.categoryId) {
+      selectedCategoryId.value = query.categoryId;
+      selectedCategoryName.value = query.categoryName || '';
+      getQuestionList();
+    }
+  },
+  { immediate: true }
+);
 });
 </script>
 
