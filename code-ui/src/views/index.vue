@@ -116,8 +116,6 @@ const { proxy } = getCurrentInstance()
 function initMenuDataList() {
   getMenuDataList().then(response => {
     menuDataList.value = response.data;
-    console.log("!!!!!!!!!!!!")
-    console.log(response.data)
     if(menuIdParam > 0){
       initModule(menuIdParam,menuNameParam,menuIndexParam)
     }else{
@@ -171,8 +169,6 @@ function initModule(menuId, name,index) {
   activeIndex.value = index;
   getModuleDataListByMenuId(menuId).then(response => {
     moduleDataList.value = response.data;
-    console.log("@@@@@@@@@")
-    console.log(response.data)
   });
 }
 
