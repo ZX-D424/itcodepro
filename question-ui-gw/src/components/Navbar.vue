@@ -172,11 +172,14 @@ const unhover = (item) => {
   position: relative;
   z-index: 1; /* 确保导航栏在视频上方 */
   border-radius: 10px; /* 添加圆角 */
+  height: 70px;
 }
 
 .logo img {
   height: 50px;
 }
+
+
 
 .nav-links {
   list-style: none;
@@ -186,7 +189,8 @@ const unhover = (item) => {
 
 .nav-links li {
   margin: 0 15px;
-  transition: background-color 0.3s, color 0.3s;
+  padding: 5px; /* 所有状态保持相同内边距 */
+  transition: background-color 0.3s; /* 平滑过渡效果 */
 }
 
 .nav-links a {
@@ -194,6 +198,7 @@ const unhover = (item) => {
   color: #333;
   font-weight: bold;
   padding: 5px 10px;
+  display: block; /* 确保点击区域稳定 */
 }
 
 .nav-links li.active,
@@ -201,9 +206,10 @@ const unhover = (item) => {
   background-color: #0066ff;
   color: #fff;
   border-radius: 4px;
+  /* 移除额外的padding，保持尺寸不变 */
 }
-
 .nav-links li a {
   color: inherit;
+  cursor: pointer; /* 始终显示手势光标（推荐） */
 }
 </style>
