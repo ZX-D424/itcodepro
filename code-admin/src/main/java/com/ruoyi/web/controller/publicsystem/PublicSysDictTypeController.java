@@ -22,7 +22,7 @@ import java.util.List;
  * @author ruoyi
  */
 @RestController
-@RequestMapping("/public/system/dict/type")
+@RequestMapping("/www/system/dict/type")
 public class PublicSysDictTypeController extends BaseController
 {
     @Autowired
